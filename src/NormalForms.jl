@@ -24,6 +24,7 @@ end
 export isunimodular
 include("hermite.jl")
 export AbstractHermite, RowHermite, ColumnHermite
+export hnfc!, hnfc
 include("smith.jl")
 export Smith
 
