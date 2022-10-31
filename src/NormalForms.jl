@@ -11,7 +11,7 @@ const detb = LinearAlgebra.det_bareiss
 Returns `true` if a matrix is unimodular. A unimodular matrix is a square integer matrix with A
 determinant equal to 1 or -1.
 """
-isunimodular(M::AbstractMatrix{<:Integer}) = issquare(M) && isone(abs(detb(M)))
+isunimodular(M::AbstractMatrix{<:Integer}) = size(M,1) == size(M,2) && isone(abs(detb(M)))
 
 function isunimodular(M::AbstractMatrix)
     try
