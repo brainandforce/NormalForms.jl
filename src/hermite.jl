@@ -1,12 +1,12 @@
 """
-    AbstractHermite{T,M<:AbstractMatrix{T}} <: Factorization{T}
+    AbstractHermite{T<:Integer,M<:AbstractMatrix{T}} <: Factorization{T}
 
 Supertype for the result of Hermite normal form calculations.
 """
 abstract type AbstractHermite{T<:Integer,M<:AbstractMatrix{T}} <: Factorization{T}
 end
 
-issuccess(H::AbstractHermite) = H.info == 0
+issuccess(H::AbstractHermite) = iszero(H.info)
 
 """
     RowHermite{T<:Integer,M<:AbstractMatrix{T}}
@@ -16,17 +16,18 @@ form `H`, which is upper triangular, and a unimodular matrix `U`, such that `H =
 equivalently, `A = U\\H`.
 """
 struct RowHermite{T,M} <: AbstractHermite{T,M}
-    H::UpperTriangular{T,M}
+    H::M
     U::M
     info::LinearAlgebra.BlasInt
     function RowHermite(
-        H::AbstractMatrix{T0},
-        U::M,
+        H::AbstractMatrix{T1},
+        U::AbstractMatrix{T2},
         info::Integer = 0
-    ) where {T0<:Integer,M<:AbstractMatrix}
+    ) where {T1<:Integer,T2<:Integer}
+        @assert istriu(H) "H is not upper triangular."
         @assert isunimodular(U) "U is not unimodular."
-        T = promote_type(T0, eltype(M))
-        return new{T,M}(UpperTriangular(H), U, info)
+        M = promote_type(typeof(H), typeof(U))
+        return new{eltype(M),M}(promote(H, U)..., info)
     end
 end
 
@@ -38,17 +39,18 @@ form `H`, which is lower triangular, and a unimodular matrix `U`, such that `H =
 equivalently, `A == H/U`.
 """
 struct ColumnHermite{T,M} <: AbstractHermite{T,M}
-    H::LowerTriangular{T,M}
+    H::M
     U::M
     info::LinearAlgebra.BlasInt
     function ColumnHermite(
-        H::AbstractMatrix{T0},
-        U::M,
+        H::AbstractMatrix{T1},
+        U::AbstractMatrix{T2},
         info::Integer = 0
-    ) where {T0<:Integer,M<:AbstractMatrix}
+    ) where {T1<:Integer,T2<:Integer}
+        @assert istril(H) "H is not lower triangular."
         @assert isunimodular(U) "U is not unimodular."
-        T = promote_type(T0, eltype(M))
-        return new{T,M}(LowerTriangular(H), U, info)
+        M = promote_type(typeof(H), typeof(U))
+        return new{eltype(M),M}(promote(H, U)..., info)
     end
 end
 
@@ -157,10 +159,10 @@ function hnfc!(M::DenseMatrix{T}) where T<:Integer
     # pmat = deepcopy(U)
     # @info "pmat = $pmat"
     # Loop through the rows of M
-    for i in eachindex(eachrow(M))[2:end]
+    for i in eachindex(eachcol(M))[2:end]
         # Loop through columns up to (but excluding) i
         for j in 1:(i-1)
-            # @debug "Matrix state: " * repr("text/plain", M)
+            @debug "Setting M[$j,$i] to zero..."
             (a,b) = ((M[j,j], M[j,i])) .|> (minimum, maximum)
             # Calculate gcd and Bezout coefficients
             (r,p,q) = gcdx(a,b)
@@ -184,11 +186,13 @@ function hnfc!(M::DenseMatrix{T}) where T<:Integer
             )
             =#
             # Reduce off diagonal
+            # @debug "Reducing off diagonal at j = $j"
             j > 1 && rod!(j)
         end
         # Reduce off diagonal once more
-        rod!(i)
-        @debug "Matrix state: " * repr("text/plain", M)
+        # @debug "Reducing off diagonal at i = $i"
+        i < size(M,2) && rod!(i)
+        # @debug "Matrix state: " * repr("text/plain", M)
     end
     # Check that the result actually makes sense...
     @assert istril(M) "Result was not lower triangular! Got " * repr("text/plain", M)
