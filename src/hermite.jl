@@ -79,7 +79,6 @@ The available styles are:
   * UpperNegative (upper triangular, negative off-diagonal elements) (default)
   * LowerPositive (lower triangular, positive off-diagonal elements)
   * LowerNegative (lower triangular, negative off-diagonal elements)
-
 """
 struct HermiteStyle{Side,Sign}
 end
@@ -101,7 +100,7 @@ function hnfc!(M::DenseMatrix{T}) where T<:Integer
     # This matrix will remain unimodular
     U = diagm(ones(T, size(M,2)))
     # Off-diagonal reduction of M, with corresponding changes also made to U
-    function rod!(k)
+    function rod!(k::Integer)
         # Make diagonal elements positive
         if M[k,k] < 0
             M[:,k] *= -1
@@ -128,8 +127,8 @@ function hnfc!(M::DenseMatrix{T}) where T<:Integer
             P[[1,i]] = P[[i,1]]
         end
     end
-    # Now check the principal minors
-    for i in eachindex(eachrow(M))[2:end]
+    # Now check the determinants of the square minors
+    for i in 2:minimum(size(M))
         # Check that the i×i principal minor is not singular
         if iszero(detb(M[1:i,1:i]))
             # @debug "Singular minor: " * repr("text/plain", M[1:i,1:i])
@@ -161,7 +160,7 @@ function hnfc!(M::DenseMatrix{T}) where T<:Integer
     # Loop through the rows of M
     for i in eachindex(eachcol(M))[2:end]
         # Loop through columns up to (but excluding) i
-        for j in 1:(i-1)
+        for j in 1:min(i-1, size(M,1))
             @debug "Setting M[$j,$i] to zero..."
             (a,b) = ((M[j,j], M[j,i])) .|> (minimum, maximum)
             # Calculate gcd and Bezout coefficients
@@ -186,12 +185,12 @@ function hnfc!(M::DenseMatrix{T}) where T<:Integer
             )
             =#
             # Reduce off diagonal
-            # @debug "Reducing off diagonal at j = $j"
+            @debug "Reducing off diagonal at j = $j"
             j > 1 && rod!(j)
         end
         # Reduce off diagonal once more
-        # @debug "Reducing off diagonal at i = $i"
-        i < size(M,2) && rod!(i)
+        @debug "Reducing off diagonal at i = $i"
+        i < minimum(size(M)) && rod!(i)
         # @debug "Matrix state: " * repr("text/plain", M)
     end
     # Check that the result actually makes sense...
@@ -201,10 +200,12 @@ function hnfc!(M::DenseMatrix{T}) where T<:Integer
 end
 
 """
-    hnfc(M::DenseMatrix{T}) -> ColumnHermite{T,typeof(M)}
+    hnfc(M::AbstractMatrix{T<:Integer}) -> ColumnHermite{T,typeof(M)}
 
 Calculates the column Hermite normal form of the integer matrix `M` using an improved Kannan-Bachem 
 algorithm, returning a `ColumnHermite` describing the elements of the factorization. Unlike
 `hnfc!()`, this creates a copy of the input matrix rather than modifying it in-place.
 """
 hnfc(M::DenseMatrix{<:Integer}) = hnfc!(deepcopy(M))
+# TODO: implement sparse matrix algorithms, if needed...
+hnfc(M::AbstractMatrix{<:Integer}) = hnfc!(collect(M))
