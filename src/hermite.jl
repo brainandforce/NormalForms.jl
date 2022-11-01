@@ -200,4 +200,11 @@ function hnfc!(M::DenseMatrix{T}) where T<:Integer
     return ColumnHermite(M, U, 0)
 end
 
+"""
+    hnfc(M::DenseMatrix{T}) -> ColumnHermite{T,typeof(M)}
+
+Calculates the column Hermite normal form of the integer matrix `M` using an improved Kannan-Bachem 
+algorithm, returning a `ColumnHermite` describing the elements of the factorization. Unlike
+`hnfc!()`, this creates a copy of the input matrix rather than modifying it in-place.
+"""
 hnfc(M::DenseMatrix{<:Integer}) = hnfc!(deepcopy(M))
