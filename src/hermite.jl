@@ -12,7 +12,8 @@ issuccess(H::AbstractHermite) = H.info == 0
     RowHermite{T<:Integer,M<:AbstractMatrix{T}}
 
 Describes the result of a decomposition of an integer matrix `A` into its row-style Hermite normal
-form `H`, which is upper triangular, and a unimodular matrix `U`, such that `A == U/H`.
+form `H`, which is upper triangular, and a unimodular matrix `U`, such that `H == U*A`, or
+equivalently, `A = U\\H`.
 """
 struct RowHermite{T,M} <: AbstractHermite{T,M}
     H::UpperTriangular{T,M}
@@ -24,7 +25,7 @@ struct RowHermite{T,M} <: AbstractHermite{T,M}
         info::Integer = 0
     ) where {T0<:Integer,M<:AbstractMatrix}
         @assert isunimodular(U) "U is not unimodular."
-        T = promote_type(T0,eltype(M))
+        T = promote_type(T0, eltype(M))
         return new{T,M}(UpperTriangular(H), U, info)
     end
 end
@@ -33,7 +34,8 @@ end
     ColumnHermite{T<:Integer,M<:AbstractMatrix{T}}
 
 Describes the result of a decomposition of an integer matrix `A` into its row-style Hermite normal
-form `H`, which is lower triangular, and a unimodular matrix `U`, such that `A == U\\H`.
+form `H`, which is lower triangular, and a unimodular matrix `U`, such that `H == A*U`, or
+equivalently, `A == H/U`.
 """
 struct ColumnHermite{T,M} <: AbstractHermite{T,M}
     H::LowerTriangular{T,M}
@@ -45,7 +47,7 @@ struct ColumnHermite{T,M} <: AbstractHermite{T,M}
         info::Integer = 0
     ) where {T0<:Integer,M<:AbstractMatrix}
         @assert isunimodular(U) "U is not unimodular."
-        T = promote_type(T0,eltype(M))
+        T = promote_type(T0, eltype(M))
         return new{T,M}(LowerTriangular(H), U, info)
     end
 end
@@ -63,7 +65,31 @@ function Base.show(io::IO, mime::MIME"text/plain", F::AbstractHermite)
 end
 
 """
-    NormalForms.hnfc!(M::DenseMatrix{T}) -> ColumnHermite{T,typeof(M)}
+    HermiteStyle{Side,Sign}
+
+A type used for controlling the mode by which a Hermite normal form calculation is calculated.
+`Side` determines whether the result is upper triangular (`:Upper`) or lower triangular (`:Lower`).
+`Sign` determines whether off-diagonal elements are positive (`:Positive`) or negative
+(`:Negative`).
+
+The available styles are:
+  * UpperPositive (upper triangular, positive off-diagonal elements)
+  * UpperNegative (upper triangular, negative off-diagonal elements) (default)
+  * LowerPositive (lower triangular, positive off-diagonal elements)
+  * LowerNegative (lower triangular, negative off-diagonal elements)
+
+"""
+struct HermiteStyle{Side,Sign}
+end
+
+const UpperPositive = HermiteStyle{:Upper,:Positive}()
+const UpperNegative = HermiteStyle{:Upper,:Negative}()
+const LowerPositive = HermiteStyle{:Lower,:Positive}()
+const LowerNegative = HermiteStyle{:Lower,:Negative}()
+
+# TODO: Does the algorithm also work for sparse matrices?
+"""
+    hnfc!(M::DenseMatrix{T}) -> ColumnHermite{T,typeof(M)}
 
 Calculates the column Hermite normal form of the integer matrix `M` in-place using an improved
 Kannan-Bachem algorithm, returning a `ColumnHermite` describing the elements of the factorization.
@@ -80,6 +106,8 @@ function hnfc!(M::DenseMatrix{T}) where T<:Integer
             U[:,k] *= -1
         end
         # Modify all rows before k
+        # If fld is used, all off-diagonal elements will be positive
+        # If cld is used, they'll be negative
         for z in 1:(k-1)
             M[:,z] -= cld(M[k,z], M[k,k]) * M[:,k]
             U[:,z] -= cld(M[k,z], M[k,k]) * U[:,k]
@@ -87,13 +115,22 @@ function hnfc!(M::DenseMatrix{T}) where T<:Integer
     end
     # Permutation vector to track pivots
     P = collect(1:size(M,2))
-    # View into M with permutation vector
-    # V = view(M, 1:size(M,1), P)
     # Permute M so that all of its principal minors are nonsingular
+    # First, check that the first entry of M is nonzero
+    if iszero(M[1,1])
+        # Permute so that M[1,1] is not zero;
+        # Propagate changes to U and P; M was originally M * U
+        let i = findfirst(!iszero, M[1,:])
+            M[:,[1,i]] = M[:,[i,1]]
+            U[:,[1,i]] = U[:,[i,1]]
+            P[[1,i]] = P[[i,1]]
+        end
+    end
+    # Now check the principal minors
     for i in eachindex(eachrow(M))[2:end]
         # Check that the i×i principal minor is not singular
         if iszero(detb(M[1:i,1:i]))
-            @debug "Singular minor: " * repr("text/plain", M[1:i,1:i])
+            # @debug "Singular minor: " * repr("text/plain", M[1:i,1:i])
             # If it is singular, loop through each 
             for j in eachindex(eachcol(M))[(i+1):end]
                 # Find a column that makes the determinant nonzero
@@ -102,10 +139,6 @@ function hnfc!(M::DenseMatrix{T}) where T<:Integer
                     M[:,[i,j]] = M[:,[j,i]]
                     U[:,[i,j]] = U[:,[j,i]]
                     P[[i,j]] = P[[j,i]]
-                    @debug string(
-                        "Permuted M to: ", repr("text/plain", M), "\n",
-                        "Permutation vector: ", repr(P)
-                    )
                 else
                     # if one can't be found, the matrix is singular
                     throw(SingularException)
@@ -113,11 +146,21 @@ function hnfc!(M::DenseMatrix{T}) where T<:Integer
             end
         end
     end
+    #=
+    @debug string(
+        "Permuted M to: ", repr("text/plain", M), "\n",
+        "Permuted U to: ", repr("text/plain", U), "\n",
+        "Permutation vector: ", repr(P)
+    )
+    =#
+    # Save the permutation matrix for later...
+    # pmat = deepcopy(U)
+    # @info "pmat = $pmat"
     # Loop through the rows of M
     for i in eachindex(eachrow(M))[2:end]
         # Loop through columns up to (but excluding) i
         for j in 1:(i-1)
-            @debug "Matrix state: " * repr("text/plain", M)
+            # @debug "Matrix state: " * repr("text/plain", M)
             (a,b) = ((M[j,j], M[j,i])) .|> (minimum, maximum)
             # Calculate gcd and Bezout coefficients
             (r,p,q) = gcdx(a,b)
@@ -128,16 +171,18 @@ function hnfc!(M::DenseMatrix{T}) where T<:Integer
             end
             # Make M[j,i] zero
             D = [p -div(M[j,i], r); q div(M[j,j], r)]
-            @debug "D: " * repr("text/plain", D)
+            # @debug "D: " * repr("text/plain", D)
             M[:,[j,i]] = M[:,[j,i]] * D
             # Update U to match the transform
             U[:,[j,i]] = U[:,[j,i]] * D
+            #=
             @debug string(
                 "At i = $i, j = $j:",
                 "\nM is now ", repr("text/plain", M),
                 "\nU is now ", repr("text/plain", U),
                 "\nM[$j,$i] is ", "not "^iszero(M[i,j]), "zero"
             )
+            =#
             # Reduce off diagonal
             j > 1 && rod!(j)
         end
@@ -145,9 +190,9 @@ function hnfc!(M::DenseMatrix{T}) where T<:Integer
         rod!(i)
         @debug "Matrix state: " * repr("text/plain", M)
     end
-    @assert istril(M) "Result was not lower triangular! " * repr("text/plain", M)
+    # Check that the result actually makes sense...
+    @assert istril(M) "Result was not lower triangular! Got " * repr("text/plain", M)
     # Use the permutation data to put U in a more convenient form
-    @info "Permutation vector: $P"
     return ColumnHermite(M, U, 0)
 end
 
