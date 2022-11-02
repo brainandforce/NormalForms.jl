@@ -6,6 +6,12 @@ Supertype for the result of Hermite normal form calculations.
 abstract type AbstractHermite{T<:Integer,M<:AbstractMatrix{T}} <: Factorization{T}
 end
 
+# Component destructuring
+Base.iterate(F::AbstractHermite) = (F.H, Val{:U}())
+Base.iterate(F::AbstractHermite, ::Val{:H}) = iterate(F)
+Base.iterate(F::AbstractHermite, ::Val{:U}) = (F.H, nothing)
+Base.iterate(F::AbstractHermite, ::Nothing) = nothing
+
 issuccess(H::AbstractHermite) = iszero(H.info)
 
 """

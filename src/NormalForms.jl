@@ -23,6 +23,7 @@ function isunimodular(M::AbstractMatrix)
 end
 
 export isunimodular
+
 include("hermite.jl")
 export AbstractHermite, RowHermite, ColumnHermite
 export NegativeOffDiagonal, PositiveOffDiagonal
