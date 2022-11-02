@@ -202,6 +202,7 @@ end
 
 """
     hnfc(M::AbstractMatrix{T<:Integer}) -> ColumnHermite{T,typeof(M)}
+        -> ColumnHermite{eltype(M),typeof(M)}
 
 Calculates the column Hermite normal form of the integer matrix `M` using an improved Kannan-Bachem 
 algorithm, returning a `ColumnHermite` describing the elements of the factorization. Unlike
@@ -215,10 +216,10 @@ of an Integer Matrix. SIAM J. Comput. 1979, 8 (4), 499–507. https://doi.org/10
 hnfc(M::AbstractMatrix{<:Integer}) = hnfc!(deepcopy(M))
 
 """
-    NormalForms.hnfr!(M::AbstractMatrix{<:Integer}, R::RoundingMode = NegativeOffDiagonal)
+    hnfr!(M::AbstractMatrix{<:Integer}, R::RoundingMode = NegativeOffDiagonal)
         -> RowHermite{eltype(M),typeof(M)}
 
-Calculates the column Hermite normal form of the integer matrix `M` in-place using an improved
+Calculates the row Hermite normal form of the integer matrix `M` in-place using an improved
 Kannan-Bachem algorithm, returning a `RowHermite` describing the elements of the factorization.
 
 # References
@@ -233,4 +234,17 @@ function hnfr!(M::AbstractMatrix{<:Integer}, R::RoundingMode = NegativeOffDiagon
     return RowHermite(H', U, info)
 end
 
+"""
+    hnfr(M::AbstractMatrix{<:Integer}, R::RoundingMode = NegativeOffDiagonal)
+        -> RowHermite{eltype(M),typeof(M)}
+
+Calculates the row Hermite normal form of the integer matrix `M` in-place using an improved
+Kannan-Bachem algorithm, returning a `RowHermite` describing the elements of the factorization. 
+Unlike `hnfr!()`, this creates a copy of the input matrix rather than modifying it in-place.
+
+# References
+
+(1) Kannan, R.; Bachem, A. Polynomial Algorithms for Computing the Smith and Hermite Normal Forms
+of an Integer Matrix. SIAM J. Comput. 1979, 8 (4), 499–507. https://doi.org/10.1137/0208040.
+"""
 hnfr(M::AbstractMatrix{<:Integer}) = hnfr!(deepcopy(M))
