@@ -1,7 +1,5 @@
-using NormalForms
 using Documenter
-
-DocMeta.setdocmeta!(NormalForms, :DocTestSetup, :(using NormalForms); recursive=true)
+using NormalForms
 
 makedocs(;
     modules=[NormalForms],
