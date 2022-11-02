@@ -68,6 +68,10 @@ struct ColumnHermite{T,M} <: AbstractHermite{T,M}
     end
 end
 
+function Base.summary(io::IO, H::AbstractHermite)
+    print(io, join(size(H.H), '×'), ' ', typeof(H), ":")
+end
+
 function Base.show(io::IO, mime::MIME"text/plain", F::AbstractHermite)
     if issuccess(F)
         summary(io, F)
