@@ -1,7 +1,7 @@
 name = "NormalForms"
 uuid = "109d20d8-9763-411c-9b60-7eb2a068657f"
 authors = ["Brandon Flores"]
-version = "0.1.0"
+version = "0.0.0"
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
