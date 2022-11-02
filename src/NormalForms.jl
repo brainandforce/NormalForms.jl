@@ -31,6 +31,7 @@ export NegativeOffDiagonal, PositiveOffDiagonal
 export hnfc!, hnfc, hnfr!, hnfr
 include("smith.jl")
 export Smith
+export snf!, snf
 
 function __init__()
     # Contains methods specific to SMatrix, which can't be mutated in-place
