@@ -20,12 +20,16 @@ struct RowHermite{T,M} <: AbstractHermite{T,M}
     U::M
     info::LinearAlgebra.BlasInt
     function RowHermite(
-        H::AbstractMatrix{T1},
-        U::AbstractMatrix{T2},
+        H::AbstractMatrix{<:Integer},
+        U::AbstractMatrix{<:Integer},
         info::Integer = 0
-    ) where {T1<:Integer,T2<:Integer}
+    )
         @assert istriu(H) "H is not upper triangular."
         @assert isunimodular(U) "U is not unimodular."
+        @assert size(H,1) == size(U,1) string(
+            "H and U have incompatible dimensions: ",
+            join(size(H), '×'), " for H and ", join(size(U), '×'), "for U"
+        )
         M = promote_type(typeof(H), typeof(U))
         return new{eltype(M),M}(promote(H, U)..., info)
     end
@@ -43,12 +47,16 @@ struct ColumnHermite{T,M} <: AbstractHermite{T,M}
     U::M
     info::LinearAlgebra.BlasInt
     function ColumnHermite(
-        H::AbstractMatrix{T1},
-        U::AbstractMatrix{T2},
+        H::AbstractMatrix{<:Integer},
+        U::AbstractMatrix{<:Integer},
         info::Integer = 0
-    ) where {T1<:Integer,T2<:Integer}
+    )
         @assert istril(H) "H is not lower triangular."
         @assert isunimodular(U) "U is not unimodular."
+        @assert size(H,2) == size(U,1) string(
+            "H and U have incompatible dimensions: ",
+            join(size(H), '×'), " for H and ", join(size(U), '×'), "for U"
+        )
         M = promote_type(typeof(H), typeof(U))
         return new{eltype(M),M}(promote(H, U)..., info)
     end
@@ -66,39 +74,27 @@ function Base.show(io::IO, mime::MIME"text/plain", F::AbstractHermite)
     end
 end
 
+const PositiveOffDiagonal = RoundDown
+const NegativeOffDiagonal = RoundUp
+
+# TODO: Verify this works for sparse matrices...
 """
-    HermiteStyle{Side,Sign}
+    NormalForms.hnf_kb!(M::AbstractMatrix{<:Integer}, R::RoundingMode = NegativeOffDiagonal)
+        -> Tuple{typeof(M),typeof(M),LinearAlgebra.BlasInt}
 
-A type used for controlling the mode by which a Hermite normal form calculation is calculated.
-`Side` determines whether the result is upper triangular (`:Upper`) or lower triangular (`:Lower`).
-`Sign` determines whether off-diagonal elements are positive (`:Positive`) or negative
-(`:Negative`).
+Generic algorithm for calculating the column Hermite normal form given a matrix `M` and the
+optional specification of a rounding mode, either `NegativeOffDiagonal` (alias for RoundUp, 
+default) or `PositiveOffDiagonal` (alias for `RoundDown`).
 
-The available styles are:
-  * UpperPositive (upper triangular, positive off-diagonal elements)
-  * UpperNegative (upper triangular, negative off-diagonal elements) (default)
-  * LowerPositive (lower triangular, positive off-diagonal elements)
-  * LowerNegative (lower triangular, negative off-diagonal elements)
+# References
+
+(1) Kannan, R.; Bachem, A. Polynomial Algorithms for Computing the Smith and Hermite Normal Forms
+of an Integer Matrix. SIAM J. Comput. 1979, 8 (4), 499–507. https://doi.org/10.1137/0208040.
 """
-struct HermiteStyle{Side,Sign}
-end
-
-const UpperPositive = HermiteStyle{:Upper,:Positive}()
-const UpperNegative = HermiteStyle{:Upper,:Negative}()
-const LowerPositive = HermiteStyle{:Lower,:Positive}()
-const LowerNegative = HermiteStyle{:Lower,:Negative}()
-
-# TODO: Does the algorithm also work for sparse matrices?
-"""
-    hnfc!(M::DenseMatrix{T}) -> ColumnHermite{T,typeof(M)}
-
-Calculates the column Hermite normal form of the integer matrix `M` in-place using an improved
-Kannan-Bachem algorithm, returning a `ColumnHermite` describing the elements of the factorization.
-"""
-function hnfc!(M::DenseMatrix{T}) where T<:Integer
+function hnf_kb!(M::AbstractMatrix{<:Integer}, R::RoundingMode = NegativeOffDiagonal)
     # Generate an identity matrix to start
     # This matrix will remain unimodular
-    U = diagm(ones(T, size(M,2)))
+    U = diagm(ones(eltype(M), size(M,2)))
     # Off-diagonal reduction of M, with corresponding changes also made to U
     function rod!(k::Integer)
         # Make diagonal elements positive
@@ -107,11 +103,11 @@ function hnfc!(M::DenseMatrix{T}) where T<:Integer
             U[:,k] *= -1
         end
         # Modify all rows before k
-        # If fld is used, all off-diagonal elements will be positive
-        # If cld is used, they'll be negative
+        # If fld (RoundDown) is used, all off-diagonal elements will be positive
+        # If cld (RoundUp) is used, they'll be negative
         for z in 1:(k-1)
-            M[:,z] -= cld(M[k,z], M[k,k]) * M[:,k]
-            U[:,z] -= cld(M[k,z], M[k,k]) * U[:,k]
+            M[:,z] -= div(M[k,z], M[k,k], R) * M[:,k]
+            U[:,z] -= div(M[k,z], M[k,k], R) * U[:,k]
         end
     end
     # Permutation vector to track pivots
@@ -147,16 +143,6 @@ function hnfc!(M::DenseMatrix{T}) where T<:Integer
             end
         end
     end
-    #=
-    @debug string(
-        "Permuted M to: ", repr("text/plain", M), "\n",
-        "Permuted U to: ", repr("text/plain", U), "\n",
-        "Permutation vector: ", repr(P)
-    )
-    =#
-    # Save the permutation matrix for later...
-    # pmat = deepcopy(U)
-    # @info "pmat = $pmat"
     # Loop through the rows of M
     for i in eachindex(eachcol(M))[2:end]
         # Loop through columns up to (but excluding) i
@@ -170,11 +156,11 @@ function hnfc!(M::DenseMatrix{T}) where T<:Integer
                 p += fld(q,a) * b
                 q -= fld(q,a) * a
             end
-            # Make M[j,i] zero
+            # Make M[j,i] zero and update U to match the transform
+            # div() will have no remainder since it divides by the gcd
+            # So the rounding mode is irrelevant
             D = [p -div(M[j,i], r); q div(M[j,j], r)]
-            # @debug "D: " * repr("text/plain", D)
             M[:,[j,i]] = M[:,[j,i]] * D
-            # Update U to match the transform
             U[:,[j,i]] = U[:,[j,i]] * D
             #=
             @debug string(
@@ -184,19 +170,28 @@ function hnfc!(M::DenseMatrix{T}) where T<:Integer
                 "\nM[$j,$i] is ", "not "^iszero(M[i,j]), "zero"
             )
             =#
-            # Reduce off diagonal
-            @debug "Reducing off diagonal at j = $j"
             j > 1 && rod!(j)
         end
-        # Reduce off diagonal once more
-        @debug "Reducing off diagonal at i = $i"
-        i < minimum(size(M)) && rod!(i)
+        i <= minimum(size(M)) && rod!(i)
         # @debug "Matrix state: " * repr("text/plain", M)
     end
-    # Check that the result actually makes sense...
-    @assert istril(M) "Result was not lower triangular! Got " * repr("text/plain", M)
-    # Use the permutation data to put U in a more convenient form
-    return ColumnHermite(M, U, 0)
+    return (M, U, 0)
+end
+
+"""
+    NormalForms.hnfc!(M::AbstractMatrix{<:Integer}, R::RoundingMode = NegativeOffDiagonal)
+        -> ColumnHermite{eltype(M),typeof(M)}
+
+Calculates the column Hermite normal form of the integer matrix `M` in-place using an improved
+Kannan-Bachem algorithm, returning a `ColumnHermite` describing the elements of the factorization.
+
+# References
+
+(1) Kannan, R.; Bachem, A. Polynomial Algorithms for Computing the Smith and Hermite Normal Forms
+of an Integer Matrix. SIAM J. Comput. 1979, 8 (4), 499–507. https://doi.org/10.1137/0208040.
+"""
+function hnfc!(M::AbstractMatrix{<:Integer}, R::RoundingMode = NegativeOffDiagonal)
+    return ColumnHermite(hnf_kb!(M, R)...)
 end
 
 """
@@ -205,7 +200,31 @@ end
 Calculates the column Hermite normal form of the integer matrix `M` using an improved Kannan-Bachem 
 algorithm, returning a `ColumnHermite` describing the elements of the factorization. Unlike
 `hnfc!()`, this creates a copy of the input matrix rather than modifying it in-place.
+
+# References
+
+(1) Kannan, R.; Bachem, A. Polynomial Algorithms for Computing the Smith and Hermite Normal Forms
+of an Integer Matrix. SIAM J. Comput. 1979, 8 (4), 499–507. https://doi.org/10.1137/0208040.
 """
-hnfc(M::DenseMatrix{<:Integer}) = hnfc!(deepcopy(M))
-# TODO: implement sparse matrix algorithms, if needed...
-hnfc(M::AbstractMatrix{<:Integer}) = hnfc!(collect(M))
+hnfc(M::AbstractMatrix{<:Integer}) = hnfc!(deepcopy(M))
+
+"""
+    NormalForms.hnfr!(M::AbstractMatrix{<:Integer}, R::RoundingMode = NegativeOffDiagonal)
+        -> RowHermite{eltype(M),typeof(M)}
+
+Calculates the column Hermite normal form of the integer matrix `M` in-place using an improved
+Kannan-Bachem algorithm, returning a `RowHermite` describing the elements of the factorization.
+
+# References
+
+(1) Kannan, R.; Bachem, A. Polynomial Algorithms for Computing the Smith and Hermite Normal Forms
+of an Integer Matrix. SIAM J. Comput. 1979, 8 (4), 499–507. https://doi.org/10.1137/0208040.
+"""
+function hnfr!(M::AbstractMatrix{<:Integer}, R::RoundingMode = NegativeOffDiagonal)
+    # Calculate the column Hermite normal form of the transpose
+    (H, U, info) = hnf_kb!(M', R)
+    # Transpose H back (equal to mutated M)
+    return RowHermite(H', U, info)
+end
+
+hnfr(M::AbstractMatrix{<:Integer}) = hnfr!(deepcopy(M))

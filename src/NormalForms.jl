@@ -1,6 +1,7 @@
 module NormalForms
 
 using LinearAlgebra
+import Base.setindex
 
 # Efficient algorithm for calculating determinants of integer matrices
 const detb = LinearAlgebra.det_bareiss
@@ -24,7 +25,8 @@ end
 export isunimodular
 include("hermite.jl")
 export AbstractHermite, RowHermite, ColumnHermite
-export hnfc!, hnfc
+export NegativeOffDiagonal, PositiveOffDiagonal
+export hnfc!, hnfc, hnfr!, hnfr
 include("smith.jl")
 export Smith
 
