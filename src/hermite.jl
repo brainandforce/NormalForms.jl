@@ -87,6 +87,7 @@ end
 const PositiveOffDiagonal = RoundDown
 const NegativeOffDiagonal = RoundUp
 
+#=
 """
     NormalForms.kb_bezout(x::Integer, y::Integer)
 
@@ -109,6 +110,7 @@ function kb_bezout(x::Integer, y::Integer)
     end
     return (r,p,q)
 end
+=#
 
 """
     HermiteStyle{S}
