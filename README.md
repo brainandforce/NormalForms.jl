@@ -15,13 +15,14 @@ several advantages. First, it integrates into pre-existing infrastructure provid
 which are subtypes of `LinearAlgebra.Factorization`. Second, effort has been made to thoroughly
 comment the code so the algorithms can be easily understood.
 
+This package only works with Julia 1.7 and above due to the use of `LinearAlgebra.det_bareiss` to
+calculate exact integer determinants.
+
 # To-do list
 
 This package is not complete by any means, and the following outstanding issues exist:
-  * The Kannan-Bachem algorithm has been implemented very naively and can use optimizations.
-        ** Many matrix operations could likely benefit from using array views.
   * Smith normal forms are not yet available.
-  * Documentation and testing infrastructure have not been implemented.
+  * Documentation and testing are far from complete.
   * No integration with `StaticArrays` exists yet.
 
 # See also
