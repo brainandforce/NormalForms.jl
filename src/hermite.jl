@@ -140,6 +140,10 @@ function hnf_ma!(
 ) where {diagonalize}
     # Create the unimodular matrix as an identity matrix
     U = diagm(ones(eltype(A), size(A,2)))
+    # Convert to a transpose 
+    if A isa Union{Adjoint,Transpose}
+        U = U'
+    end
     # Loop through each row of A
     @inbounds for k in axes(A,1)
         # Set k as a default pivot
@@ -257,7 +261,7 @@ function hnfr!(M::AbstractMatrix{<:Integer}, R::RoundingMode = NegativeOffDiagon
     # Calculate the column HNF of the transpose
     (H, U, info) = hnf_ma!(M', R)
     # Transpose back to get M again
-    return RowHermite(H', copy(U'), info)
+    return RowHermite(H', U', info)
 end
 
 """
