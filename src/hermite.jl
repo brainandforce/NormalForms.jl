@@ -63,7 +63,7 @@ struct ColumnHermite{T,M} <: AbstractHermite{T,M}
             "H and U have incompatible dimensions: ",
             join(size(H), '×'), " for H and ", join(size(U), '×'), "for U"
         )
-        M = promote_type(typeof(H), typeof(U))
+        M = Base.promote_typeof(H, U)
         return new{eltype(M),M}(promote(H, U)..., info)
     end
 end
@@ -87,135 +87,162 @@ end
 const PositiveOffDiagonal = RoundDown
 const NegativeOffDiagonal = RoundUp
 
-# TODO: Verify this works for sparse matrices...
 """
-    NormalForms.hnf_kb!(M::AbstractMatrix{<:Integer}, R::RoundingMode = NegativeOffDiagonal)
-        -> Tuple{typeof(M),typeof(M),LinearAlgebra.BlasInt}
+    NormalForms.kb_bezout(x::Integer, y::Integer)
 
-Generic algorithm for calculating the column Hermite normal form given a matrix `M` and the
-optional specification of a rounding mode, either `NegativeOffDiagonal` (alias for RoundUp, 
-default) or `PositiveOffDiagonal` (alias for `RoundDown`).
+The modified Euclidean algorithm used in the Kannan-Bachem algorithm for generating the elementary
+matrix operations used in the main loop.
 
 # References
 
 (1) Kannan, R.; Bachem, A. Polynomial Algorithms for Computing the Smith and Hermite Normal Forms
 of an Integer Matrix. SIAM J. Comput. 1979, 8 (4), 499–507. https://doi.org/10.1137/0208040.
 """
-function hnf_kb!(M::AbstractMatrix{<:Integer}, R::RoundingMode = NegativeOffDiagonal)
-    # Generate an identity matrix to start
-    # This matrix will remain unimodular
-    U = diagm(ones(eltype(M), size(M,2)))
-    # Off-diagonal reduction of M, with corresponding changes also made to U
-    function rod!(k::Integer)
-        # Make diagonal elements positive
-        if M[k,k] < 0
-            M[:,k] *= -1
-            U[:,k] *= -1
-        end
-        # Modify all rows before k
-        # If fld (RoundDown) is used, all off-diagonal elements will be positive
-        # If cld (RoundUp) is used, they'll be negative
-        for z in 1:(k-1)
-            M[:,z] -= div(M[k,z], M[k,k], R) * M[:,k]
-            U[:,z] -= div(M[k,z], M[k,k], R) * U[:,k]
-        end
+function kb_bezout(x::Integer, y::Integer)
+    # Order a and b as needed
+    (a,b) = (x,y) .|> (minimum, maximum)
+    (r,p,q) = gcdx(a,b)
+    # Modify p and q if needed
+    if abs(q) > abs(a)
+        p += fld(q,a) * b
+        q -= fld(q,a) * a
     end
-    # Permutation vector to track pivots
-    P = collect(1:size(M,2))
-    # Permute M so that all of its principal minors are nonsingular
-    # First, check that the first entry of M is nonzero
-    if iszero(M[1,1])
-        # Permute so that M[1,1] is not zero;
-        # Propagate changes to U and P; M was originally M * U
-        let i = findfirst(!iszero, M[1,:])
-            M[:,[1,i]] = M[:,[i,1]]
-            U[:,[1,i]] = U[:,[i,1]]
-            P[[1,i]] = P[[i,1]]
-        end
-    end
-    # Now check the determinants of the square minors
-    for i in 2:minimum(size(M))
-        # Check that the i×i principal minor is not singular
-        if iszero(detb(M[1:i,1:i]))
-            # @debug "Singular minor: " * repr("text/plain", M[1:i,1:i])
-            # If it is singular, loop through each 
-            for j in eachindex(eachcol(M))[(i+1):end]
-                # Find a column that makes the determinant nonzero
-                if !iszero(detb(M[1:i, vcat(1:(i-1), j)]))
-                    # Swap columns i and j
-                    M[:,[i,j]] = M[:,[j,i]]
-                    U[:,[i,j]] = U[:,[j,i]]
-                    P[[i,j]] = P[[j,i]]
-                else
-                    # if one can't be found, the matrix is singular
-                    throw(SingularException)
+    return (r,p,q)
+end
+
+"""
+    HermiteStyle{S}
+
+Determines whether the output of `NormalForms.hnf_kb!()` produces a `RowHermite` or `ColumnHermite`
+output. The possible choices are `RowStyle` (`HermiteStyle{:row}()`) or `ColumnStyle`
+(`HermiteStyle{:col}()`).
+"""
+struct HermiteStyle{S}
+end
+
+"""
+    NormalForms._hnf_ma!(
+        A::AbstractMatrix{<:Integer},
+        R::RoundingMode = NegativeOffDiagonal,
+        ::Val{diagonalize} = Val{true}(),
+    ) -> Tuple{typeof(A), typeof(A), LinearAlgebra.BlasInt}
+
+A modified version of `HermiteNormalForm._hnf_like!()` that calculates the column-style Hermite
+normal form of a matrix in-place, returning `A`, the unimodular matrix `U` such that `H == AU`, and
+the factorization info (zero if success - matching LinearAlgebra factorizations).
+
+The original implementation may be found here: https://github.com/YingboMa/HermiteNormalForm.jl/
+"""
+function hnf_ma!(
+    A::AbstractMatrix{<:Integer},
+    R::RoundingMode = NegativeOffDiagonal,
+    ::Val{diagonalize} = Val{false}(),
+) where {diagonalize}
+    # Create the unimodular matrix as an identity matrix
+    U = diagm(ones(eltype(A), size(A,2)))
+    # Loop through each row of A
+    @inbounds for k in axes(A,1)
+        # Set k as a default pivot
+        pivot = k
+        # If k has a diagonal and it's zero, change the pivot
+        if k <= minimum(size(A)) && iszero(A[k,k])
+            # Loop through each element of row k
+            for j in axes(A,2)[k+1:end]
+                # Set the pivot to a nonzero element
+                if A[k,j] != zero(eltype(A))
+                    pivot = j
+                    # We probably should break here to get the *first* nonzero element...
                 end
             end
+            # If no pivot is found, set the pivot to 0 to indicate rank deficiency
+            pivot == k && (pivot = zero(pivot))
         end
-    end
-    # Loop through the rows of M
-    for i in eachindex(eachcol(M))[2:end]
-        # Loop through columns up to (but excluding) i
-        for j in 1:min(i-1, size(M,1))
-            @debug "Setting M[$j,$i] to zero..."
-            (a,b) = ((M[j,j], M[j,i])) .|> (minimum, maximum)
-            # Calculate gcd and Bezout coefficients
-            (r,p,q) = gcdx(a,b)
-            # Modify p and q if needed
-            if abs(q) > abs(a)
-                p += fld(q,a) * b
-                q -= fld(q,a) * a
+        # It's not entirely clear to me what ki does.
+        if iszero(pivot)
+            # Set ki to the first nonzero column member
+            ki = findfirst(!iszero, @view A[k+1:end, k])
+            # If all are zero, break from the row loop (matrix is truly rank deficient)
+            # Otherwise, add the found value to k to compensate for the view's indices
+            isnothing(ki) ? continue : (ki += k) # what does it mean when ki > k...
+        else
+            ki = k
+            # Permute rows according to the pivot if needed
+            if pivot != k
+                A[:,[pivot,k]] = A[:,[k,pivot]]
+                U[:,[pivot,k]] = U[:,[k,pivot]]
             end
-            # Make M[j,i] zero and update U to match the transform
-            # div() will have no remainder since it divides by the gcd
-            # So the rounding mode is irrelevant
-            D = [p -div(M[j,i], r); q div(M[j,j], r)]
-            M[:,[j,i]] = M[:,[j,i]] * D
-            U[:,[j,i]] = U[:,[j,i]] * D
-            #=
-            @debug string(
-                "At i = $i, j = $j:",
-                "\nM is now ", repr("text/plain", M),
-                "\nU is now ", repr("text/plain", U),
-                "\nM[$j,$i] is ", "not "^iszero(M[i,j]), "zero"
-            )
-            =#
-            j > 1 && rod!(j)
         end
-        i <= minimum(size(M)) && rod!(i)
-        # @debug "Matrix state: " * repr("text/plain", M)
+        # Zero the off-diagonal elements: A[k,1:k-1]
+        for j in axes(A,2)[k+1:end]
+            # Why do we use ki here?
+            Akk, Akj = A[ki, k], A[ki, j]
+            (d, p, q) = gcdx(Akk, Akj)
+            Akkd, Akjd = div(Akk, d), div(Akj, d)
+            # Mutating A
+            Ak, Aj = A[:,k], A[:,j]
+            A[:,k] =  Ak * p + Aj * q
+            A[:,j] = -Ak * Akjd + Aj * Akkd
+            # Mutating U
+            Uk, Uj = U[:,k], U[:,j]
+            U[:,k] =  Uk * p + Uj * q
+            U[:,j] = -Uk * Akjd + Uj * Akkd
+        end
+        # Skip the extra steps if k is not in the largest leading minor
+        k <= size(A,2) || continue
+        # Does this calculate a different transform?
+        if diagonalize
+            # Zero out A[k, 1:k-1] === A21[1, 1:k-1] by doing
+            # A[:, j] = A[:, [k j]] * [-A[k, j], A[k, k]]
+            #
+            # Note that we then have:
+            #   A[k, j] = A[k, [k j]] * [-A[k, j], A[k, k]]
+            # = A[k, k] * -A[k, j] + A[k, j] * A[k, k] = 0
+            for j in 1:k-1
+                Akk, Akj = A[ki,k], A[ki, j]
+                d = gcd(A[ki,k], A[ki, j])
+                Akkd, Akjd = div(A[ki,k], d), div(A[ki,j], d)
+
+                Ak, Aj = A[:,k], A[:,j]
+                A[:,j] = -Ak * Akjd + Aj * Akkd
+
+                Uk, Uj = U[:,k], U[:,j]
+                U[:,j] = -Uk * Akjd + Uj * Akkd
+            end
+        else
+            # Make the diagonal element positive
+            if A[ki, k] < zero(eltype(A))
+                @. A[:,k] = -A[:,k]
+                @. U[:,k] = -U[:,k]
+            end
+            # Minimize the off-diagonal elements
+            for j = 1:k-1
+                mul = div(A[ki,j], A[ki,k], R)
+                @. A[:,j] -= mul * A[:,k]
+                @. U[:,j] -= mul * U[:,k]
+            end
+        end
     end
-    return (M, U, 0)
+    return (A, U, 0)
 end
 
 """
     NormalForms.hnfc!(M::AbstractMatrix{<:Integer}, R::RoundingMode = NegativeOffDiagonal)
         -> ColumnHermite{eltype(M),typeof(M)}
 
-Calculates the column Hermite normal form of the integer matrix `M` in-place using an improved
-Kannan-Bachem algorithm, returning a `ColumnHermite` describing the elements of the factorization.
-
-# References
-
-(1) Kannan, R.; Bachem, A. Polynomial Algorithms for Computing the Smith and Hermite Normal Forms
-of an Integer Matrix. SIAM J. Comput. 1979, 8 (4), 499–507. https://doi.org/10.1137/0208040.
+Calculates the column Hermite normal form of the integer matrix `M` in-place, returning a
+`ColumnHermite` describing the elements of the factorization.
 """
 function hnfc!(M::AbstractMatrix{<:Integer}, R::RoundingMode = NegativeOffDiagonal)
-    return ColumnHermite(hnf_kb!(M, R)...)
+    return ColumnHermite(hnf_ma!(M, R)...)
 end
 
 """
     hnfc(M::AbstractMatrix{T<:Integer}) -> ColumnHermite{T,typeof(M)}
         -> ColumnHermite{eltype(M),typeof(M)}
 
-Calculates the column Hermite normal form of the integer matrix `M` using an improved Kannan-Bachem 
-algorithm, returning a `ColumnHermite` describing the elements of the factorization. Unlike
-`hnfc!()`, this creates a copy of the input matrix rather than modifying it in-place.
-
-# References
-
-(1) Kannan, R.; Bachem, A. Polynomial Algorithms for Computing the Smith and Hermite Normal Forms
-of an Integer Matrix. SIAM J. Comput. 1979, 8 (4), 499–507. https://doi.org/10.1137/0208040.
+Calculates the column Hermite normal form of the integer matrix `M` in-place, returning a
+`ColumnHermite` describing the elements of the factorization. Unlike `hnfc!()`, this function
+creates a copy of the input matrix rather than modifying it in-place.
 """
 hnfc(M::AbstractMatrix{<:Integer}) = hnfc!(deepcopy(M))
 
@@ -223,32 +250,22 @@ hnfc(M::AbstractMatrix{<:Integer}) = hnfc!(deepcopy(M))
     hnfr!(M::AbstractMatrix{<:Integer}, R::RoundingMode = NegativeOffDiagonal)
         -> RowHermite{eltype(M),typeof(M)}
 
-Calculates the row Hermite normal form of the integer matrix `M` in-place using an improved
-Kannan-Bachem algorithm, returning a `RowHermite` describing the elements of the factorization.
-
-# References
-
-(1) Kannan, R.; Bachem, A. Polynomial Algorithms for Computing the Smith and Hermite Normal Forms
-of an Integer Matrix. SIAM J. Comput. 1979, 8 (4), 499–507. https://doi.org/10.1137/0208040.
+Calculates the row Hermite normal form of the integer matrix `M` in-place, returning a `RowHermite`
+describing the elements of the factorization.
 """
 function hnfr!(M::AbstractMatrix{<:Integer}, R::RoundingMode = NegativeOffDiagonal)
-    # Calculate the column Hermite normal form of the transpose
-    (H, U, info) = hnf_kb!(M', R)
-    # Transpose H back (equal to mutated M)
-    return RowHermite(H', U, info)
+    # Calculate the column HNF of the transpose
+    (H, U, info) = hnf_ma!(M', R)
+    # Transpose back to get M again
+    return RowHermite(H', copy(U'), info)
 end
 
 """
     hnfr(M::AbstractMatrix{<:Integer}, R::RoundingMode = NegativeOffDiagonal)
         -> RowHermite{eltype(M),typeof(M)}
 
-Calculates the row Hermite normal form of the integer matrix `M` in-place using an improved
-Kannan-Bachem algorithm, returning a `RowHermite` describing the elements of the factorization. 
-Unlike `hnfr!()`, this creates a copy of the input matrix rather than modifying it in-place.
-
-# References
-
-(1) Kannan, R.; Bachem, A. Polynomial Algorithms for Computing the Smith and Hermite Normal Forms
-of an Integer Matrix. SIAM J. Comput. 1979, 8 (4), 499–507. https://doi.org/10.1137/0208040.
+Calculates the row Hermite normal form of the integer matrix `M` in-place, returning a `RowHermite`
+describing the elements of the factorization. Unlike `hnfr!()`, this function creates a copy of the
+input matrix rather than modifying it in-place.
 """
 hnfr(M::AbstractMatrix{<:Integer}) = hnfr!(deepcopy(M))
