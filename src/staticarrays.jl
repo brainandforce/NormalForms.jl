@@ -12,3 +12,5 @@ function hnfr(M::SMatrix{D1,D2,<:Integer}, R::RoundingMode = NegativeOffDiagonal
     (H, U, info) = hnf_ma!(MMatrix(M'), R)
     return RowHermite(SMatrix{D1,D2}(H'), SMatrix{D1,D2}(U'), info)
 end
+
+snf(M::SMatrix{D1,D2,<:Integer}) where {D1,D2} = Smith(snf_ma!(MMatrix(M))...)

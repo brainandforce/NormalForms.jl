@@ -16,7 +16,6 @@ struct Smith{T<:Integer,M<:AbstractMatrix{T}} <: Factorization{T}
         V::AbstractMatrix{<:Integer},
         info::Integer = 0
     )
-        @assert isdiag(S) "S is not diagonal."
         @assert isunimodular(U) "U is not unimodular."
         @assert isunimodular(V) "V is not unimodular."
         @assert size(S,1) == size(U,2) string(
@@ -60,30 +59,103 @@ function Base.show(io::IO, mime::MIME"text/plain", F::Smith)
     end
 end
 
-# TODO: This is not the most efficient way of doing things, nor is this guaranteed to be correct.
-"""
-    snf!(M::AbstractMatrix{<:Integer}) -> Smith{eltype(M),M}
-
-Calculates the Smith normal form of an integer matrix in-place. This is done naively by applying
-`NormalForms.hnf_ma!()` twice, on either side.
-
-!!! warning This may not always work! This is a naive stopgap implementation...
-"""
-function snf!(M::AbstractMatrix{<:Integer})
-    # Just get the unimodular part of the HNF factorization of M
-    V = hnf_ma!(M)[2]
-    # Now get the unimodular part of the oppposite HNF factorization
-    U = hnf_ma!(M')[2]
-    # Return as a Smith normal form
-    return Smith(M, U, V, 0)
+function snf_ma!(A::AbstractMatrix{<:Integer})
+    # Create the left and right unimodular matrices
+    U = diagm(ones(eltype(A), size(A,1)))
+    V = diagm(ones(eltype(A), size(A,2)))
+    # Convert to a transpose
+    # TODO: Do we need to do this here?
+    # And might it make sense to reverse the definitions so that U = V' and V = U'?
+    if A isa Union{Adjoint,Transpose}
+        U = U'
+        V = V'
+    end
+    # Loop through each row of A
+    @inbounds for k in axes(A,1)
+        # Set k as a default pivot
+        pivot = k
+        # If k has a diagonal and it's zero, change the pivot
+        if k <= minimum(size(A)) && iszero(A[k,k])
+            # Loop through each element of row k
+            for j in axes(A,2)[k+1:end]
+                # Set the pivot to a nonzero element
+                if A[k,j] != zero(eltype(A))
+                    pivot = j
+                    # We probably should break here to get the *first* nonzero element...
+                end
+            end
+            # If no pivot is found, set the pivot to 0 to indicate rank deficiency
+            pivot == k && (pivot = zero(pivot))
+        end
+        # It's not entirely clear to me what ki does.
+        if iszero(pivot)
+            # Set ki to the first nonzero column member
+            ki = findfirst(!iszero, @view A[k+1:end, k])
+            # If all are zero, break from the row loop (matrix is truly rank deficient)
+            # Otherwise, add the found value to k to compensate for the view's indices
+            isnothing(ki) ? continue : (ki += k) # what does it mean when ki > k...
+        else
+            ki = k
+            # Permute rows according to the pivot if needed
+            if pivot != k
+                # TODO: Is this the right set of operations?
+                A[:,[pivot,k]] = A[:,[k,pivot]]
+                # We're only pivoting by column: U[[pivot,k],:] = U[[k,pivot],:]
+                V[:,[pivot,k]] = V[:,[k,pivot]]
+            end
+        end
+        # Loop until all off-diagonal elements are zero
+        # No need to do this if A[k,k] is the last diagonal entry
+        while k < minimum(size(A)) && !all(iszero, (A[k,k+1:end], A[k+1:end,k]))
+            # Zero the off-diagonal elements across the row: A[k,1:k-1]
+            for j in axes(A,2)[k+1:end]
+                # Generate the matrix elements for this transform
+                Akk, Akj = A[ki, k], A[ki, j]
+                (d, p, q) = gcdx(Akk, Akj)
+                # Rounding is irrelevant since d is the gcd
+                Akkd, Akjd = div(Akk, d), div(Akj, d)
+                # Mutating A to zero the upper off-diagonal elements
+                Ak, Aj = A[:,k], A[:,j]
+                A[:,k] =  Ak * p + Aj * q
+                A[:,j] = -Ak * Akjd + Aj * Akkd
+                # Mutating V as the matching unimodular matrix
+                Vk, Vj = V[:,k], V[:,j]
+                V[:,k] =  Vk * p + Vj * q
+                V[:,j] = -Vk * Akjd + Vj * Akkd
+                # @assert isunimodular(V)
+            end
+            # Now zero them across the column: A[1:k-1,k]
+            for j in axes(A,1)[k+1:end]
+                # Generate the matrix elements for this transform
+                Akk, Ajk = A[k, ki], A[j, ki]
+                (d, p, q) = gcdx(Akk, Ajk)
+                # Rounding is irrelevant since d is the gcd
+                Akkd, Ajkd = div(Akk, d), div(Ajk, d)
+                # Mutating A to zero the upper off-diagonal elements
+                Ak, Aj = A[k,:], A[j,:]
+                A[k,:] =  Ak * p + Aj * q
+                A[j,:] = -Ak * Ajkd + Aj * Akkd
+                # Mutating U as the matching unimodular matrix
+                Uk, Uj = U[k,:], U[j,:]
+                U[k,:] =  Uk * p + Uj * q
+                U[j,:] = -Uk * Ajkd + Uj * Akkd
+                # @assert isunimodular(U)
+            end
+        end
+    end
+    return (A, U, V, 0)
 end
 
 """
     snf(M::AbstractMatrix{<:Integer}) -> Smith{eltype(M),M}
 
-Calculates the Smith normal form of an integer matrix, returning a copy of the original matrix.
-This is done naively by applying the Kannan-Bachem algorithm twice, on either side. 
+Calculates the Smith normal form of an integer matrix in-place.
+"""
+snf!(M::AbstractMatrix{<:Integer}) = Smith(snf_ma!(M)...)
 
-!!! warning This may not always work! This is a naive stopgap implementation...
+"""
+    snf(M::AbstractMatrix{<:Integer}) -> Smith{eltype(M),M}
+
+Calculates the Smith normal form of an integer matrix, returning a copy of the original matrix.
 """
 snf(M::AbstractMatrix{<:Integer}) = snf!(deepcopy(M))
