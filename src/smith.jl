@@ -71,7 +71,7 @@ function snf_ma!(A::AbstractMatrix{<:Integer})
         V = V'
     end
     # Loop through each row of A
-    @inbounds for k in axes(A,1)
+    for k in minimum(axes(A))
         # Set k as a default pivot
         pivot = k
         # If k has a diagonal and it's zero, change the pivot
@@ -106,14 +106,19 @@ function snf_ma!(A::AbstractMatrix{<:Integer})
         end
         # Loop until all off-diagonal elements are zero
         # No need to do this if A[k,k] is the last diagonal entry
-        while k < minimum(size(A)) && !all(iszero, (A[k,k+1:end], A[k+1:end,k]))
+        # counter = 0
+        while !all(iszero, (A[k,k+1:end], A[k+1:end,k]))
             # Zero the off-diagonal elements across the row: A[k,1:k-1]
-            for j in axes(A,2)[k+1:end]
+            # Track whether to iterate through rows and columns
+            row, col = k .< size(A)
+            # @info "row = $row, col = $col"
+            col && for j in axes(A,2)[k+1:end]
                 # Generate the matrix elements for this transform
                 Akk, Akj = A[ki, k], A[ki, j]
                 (d, p, q) = gcdx(Akk, Akj)
                 # Rounding is irrelevant since d is the gcd
                 Akkd, Akjd = div(Akk, d), div(Akj, d)
+                # @info string("D_row = ", repr("text/plain", [p Akjd; q Akkd]))
                 # Mutating A to zero the upper off-diagonal elements
                 Ak, Aj = A[:,k], A[:,j]
                 A[:,k] =  Ak * p + Aj * q
@@ -125,12 +130,13 @@ function snf_ma!(A::AbstractMatrix{<:Integer})
                 # @assert isunimodular(V)
             end
             # Now zero them across the column: A[1:k-1,k]
-            for j in axes(A,1)[k+1:end]
+            row && for j in axes(A,1)[k+1:end]
                 # Generate the matrix elements for this transform
                 Akk, Ajk = A[k, ki], A[j, ki]
                 (d, p, q) = gcdx(Akk, Ajk)
                 # Rounding is irrelevant since d is the gcd
                 Akkd, Ajkd = div(Akk, d), div(Ajk, d)
+                # @info string("D_col = ", repr("text/plain", [p q; Ajkd Akkd]))
                 # Mutating A to zero the upper off-diagonal elements
                 Ak, Aj = A[k,:], A[j,:]
                 A[k,:] =  Ak * p + Aj * q
@@ -141,6 +147,15 @@ function snf_ma!(A::AbstractMatrix{<:Integer})
                 U[j,:] = -Uk * Ajkd + Uj * Akkd
                 # @assert isunimodular(U)
             end
+            #=
+            @info "A = " * repr("text/plain", A)
+            @info "A[$k,$(k+1):end] = " * repr(A[k,k+1:end])
+            @info "A[$(k+1):end,$k] = " * repr(A[k+1:end,k])
+            counter += 1
+            if counter == 64
+                error("We got stuck.")
+            end
+            =#
         end
     end
     return (A, U, V, 0)
