@@ -88,47 +88,9 @@ function snf_ma!(A::AbstractMatrix{<:Integer})
         # Loop until all off-diagonal elements are zero
         counter = 0
         while !all(iszero, (A[k,k+1:end], A[k+1:end,k]))
-            # Zero the off-diagonal elements across the row: A[k,k+1:end]
-            # @info "row = $row, col = $col"
-            k < size(A,2) && for j in axes(A,2)[k+1:end]
-                # Generate the matrix elements for this transform
-                Akk, Akj = A[ki, k], A[ki, j]
-                (d, p, q) = gcdx(Akk, Akj)
-                # Rounding is irrelevant since d is the gcd
-                Akkd, Akjd = div(Akk, d), div(Akj, d)
-                # Mutating A to zero the upper off-diagonal elements
-                Ak, Aj = A[:,k], A[:,j]
-                A[:,k] =  Ak * p + Aj * q
-                A[:,j] = -Ak * Akjd + Aj * Akkd
-                # Mutating V as the matching unimodular matrix
-                Vk, Vj = V[:,k], V[:,j]
-                V[:,k] =  Vk * p + Vj * q
-                V[:,j] = -Vk * Akjd + Vj * Akkd
-                # @assert isunimodular(V)
-            end
-            #=
-            @info "A = " * repr("text/plain", A) * 
-                "\nA[$k,$(k+1):end] = " * repr(A[k,k+1:end]) *
-                "\nA[$(k+1):end,$k] = " * repr(A[k+1:end,k])
-            =#
-            # Now zero them across the column: A[k+1:end,k]
-            k < size(A,1) && for j in axes(A,1)[k+1:end]
-                # Generate the matrix elements for this transform
-                Akk, Ajk = A[k, ki], A[j, ki]
-                (d, p, q) = gcdx(Akk, Ajk)
-                # Rounding is irrelevant since d is the gcd
-                Akkd, Ajkd = div(Akk, d), div(Ajk, d)
-                # @info string("D_row = ", repr("text/plain", [p q; Ajkd Akkd]))
-                # Mutating A to zero the upper off-diagonal elements
-                Ak, Aj = A[k,:], A[j,:]
-                A[k,:] =  Ak * p + Aj * q
-                A[j,:] = -Ak * Ajkd + Aj * Akkd
-                # Mutating U as the matching unimodular matrix
-                Uk, Uj = U[k,:], U[j,:]
-                U[k,:] =  Uk * p + Uj * q
-                U[j,:] = -Uk * Ajkd + Uj * Akkd
-                # @assert isunimodular(U)
-            end
+            # Zero off-diagonal elements across the row, then the column
+            zero_row!(A, V, k, ki)
+            zero_col!(A, U, k, ki)
             @info "A = " * repr("text/plain", A) * 
                 "\nA[$k,$(k+1):end] = " * repr(A[k,k+1:end]) *
                 "\nA[$(k+1):end,$k] = " * repr(A[k+1:end,k])

@@ -52,7 +52,7 @@ end
 Finds a suitable pivot element for the Smith or Hermite normal form algorithms. If none can be
 found, it returns 0.
 """
-function find_pivot(A::AbstractMatrix{<:Integer}, k::Integer)
+@inline function find_pivot(A::AbstractMatrix{<:Integer}, k::Integer)
     # Default to k as the pivot
     pivot = k
     # If k has a diagonal and it's zero, change the pivot
@@ -69,4 +69,108 @@ function find_pivot(A::AbstractMatrix{<:Integer}, k::Integer)
         pivot == k && (pivot = zero(pivot))
     end
     return pivot
+end
+
+"""
+    NormalForms.zero_row!(
+        A::AbstractMatrix{<:Integer},
+        U::AbstractMatrix{<:Integer},
+        k::Integer
+        ki::Integer = k
+    )
+
+Zeroes the elements along the row `A[k,k+1:end]` (all elements right of `A[k,k]`). Changes to `A`
+are tracked in the matrix `U`, which will only undergo unimodular transforms.
+"""
+@inline function zero_row!(
+    A::AbstractMatrix{<:Integer},
+    U::AbstractMatrix{<:Integer},
+    k::Integer,
+    ki::Integer = k
+)
+    # This can safely be skipped if k is the last element
+    k < last(axes(A,2)) && for j in axes(A,2)[k+1:end]
+        (d, p, q) = gcdx(A[ki, k], A[ki, j])
+        Akkd, Akjd = div(A[ki, k], d), div(A[ki, j], d)
+        # Mutating A
+        Ak, Aj = A[:,k], A[:,j]
+        A[:,k] =  Ak * p + Aj * q
+        A[:,j] = -Ak * Akjd + Aj * Akkd
+        # Mutating U
+        Uk, Uj = U[:,k], U[:,j]
+        U[:,k] =  Uk * p + Uj * q
+        U[:,j] = -Uk * Akjd + Uj * Akkd
+        # @assert isunimodular(U)
+    end
+end
+
+zero_row!(::Union{Diagonal,LowerTriangular}, args...) = nothing
+
+"""
+    NormalForms.zero_col!(
+        A::AbstractMatrix{<:Integer},
+        U::AbstractMatrix{<:Integer},
+        k::Integer
+        ki::Integer = k
+    )
+
+Zeroes the elements along the column `A[k+1:end,k]` (all elements below `A[k,k]`). Changes to `A`
+are tracked in the matrix `U`, which will only undergo unimodular transforms.
+"""
+@inline function zero_col!(
+    A::AbstractMatrix{<:Integer},
+    U::AbstractMatrix{<:Integer},
+    k::Integer,
+    ki::Integer = k
+)
+    # This can safely be skipped if k is the last element
+    k < last(axes(A,1)) && for j in axes(A,1)[k+1:end]
+        (d, p, q) = gcdx(A[k, ki], A[j, ki])
+        Akkd, Ajkd = div(A[k, ki], d), div(A[j, ki], d)
+        # Mutating A to zero the upper off-diagonal elements
+        Ak, Aj = A[k,:], A[j,:]
+        A[k,:] =  Ak * p + Aj * q
+        A[j,:] = -Ak * Ajkd + Aj * Akkd
+        # Mutating U as the matching unimodular matrix
+        Uk, Uj = U[k,:], U[j,:]
+        U[k,:] =  Uk * p + Uj * q
+        U[j,:] = -Uk * Ajkd + Uj * Akkd
+        # @assert isunimodular(U)
+    end
+end
+
+zero_col!(::Union{Diagonal,UpperTriangular}, args...) = nothing
+
+"""
+    NormalForms.reduce_off_diagonal!(
+        A::AbstractMatrix{<:Integer},
+        U::AbstractMatrix{<:Integer},
+        R::RoundingMode
+    )
+
+Performs an off-diagonal reduction of elements in `A` in-place by columns. This also ensures that
+diagonal elements are positive by multiplying the columns by -1 if needed. Changes to `A` are
+tracked in the matrix `U`, which will only undergo unimodular transforms.
+
+If the `RoundingMode` is set to `RoundUp` or `NegativeOffDiagonal`, the off-diagonal elements will
+be negative. If set to `RoundDown` or `PositiveOffDiagonal`, they will be positive.
+"""
+@inline function reduce_cols_off_diagonal!(
+    A::AbstractMatrix{<:Integer},
+    U::AbstractMatrix{<:Integer},
+    k::Integer,
+    ki::Integer = k,
+    R::RoundingMode = NegativeOffDiagonal
+)
+    # Make the diagonal element positive
+    if A[ki, k] < zero(eltype(A))
+        @. A[:,k] = -A[:,k]
+        @. U[:,k] = -U[:,k]
+    end
+    # Minimize the off-diagonal elements
+    for j = 1:k-1
+        mul = div(A[ki,j], A[ki,k], R)
+        @. A[:,j] -= mul * A[:,k]
+        @. U[:,j] -= mul * U[:,k]
+    end
 end

@@ -162,40 +162,15 @@ function hnf_ma!(
             swapcols!(A, pivot, k)
             swapcols!(U, pivot, k)
         end
-        # Zero the off-diagonal elements: A[k,1:k-1]
-        for j in axes(A,2)[k+1:end]
-            # Why do we use ki here?
-            Akk, Akj = A[ki, k], A[ki, j]
-            (d, p, q) = gcdx(Akk, Akj)
-            Akkd, Akjd = div(Akk, d), div(Akj, d)
-            # Mutating A
-            Ak, Aj = A[:,k], A[:,j]
-            A[:,k] =  Ak * p + Aj * q
-            A[:,j] = -Ak * Akjd + Aj * Akkd
-            # Mutating U
-            Uk, Uj = U[:,k], U[:,j]
-            U[:,k] =  Uk * p + Uj * q
-            U[:,j] = -Uk * Akjd + Uj * Akkd
-        end
+        zero_row!(A, U, k, ki)
         # Skip the extra steps if k is not in the largest leading minor
-        k <= size(A,2) || continue
-        # Make the diagonal element positive
-        if A[ki, k] < zero(eltype(A))
-            @. A[:,k] = -A[:,k]
-            @. U[:,k] = -U[:,k]
-        end
-        # Minimize the off-diagonal elements
-        for j = 1:k-1
-            mul = div(A[ki,j], A[ki,k], R)
-            @. A[:,j] -= mul * A[:,k]
-            @. U[:,j] -= mul * U[:,k]
-        end
+        k <= size(A,2) && reduce_cols_off_diagonal!(A, U, k, ki, R)
     end
     return (A, U, 0)
 end
 
 """
-    NormalForms.hnfc!(M::AbstractMatrix{<:Integer}, R::RoundingMode = NegativeOffDiagonal)
+    hnfc!(M::AbstractMatrix{<:Integer}, R::RoundingMode = NegativeOffDiagonal)
         -> ColumnHermite{eltype(M),typeof(M)}
 
 Calculates the column Hermite normal form of the integer matrix `M` in-place, returning a
