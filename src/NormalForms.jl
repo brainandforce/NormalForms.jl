@@ -23,6 +23,22 @@ function isunimodular(M::AbstractMatrix)
     end
 end
 
+"""
+    NormalForms.gcd_kb(x::Integer, y::Integer) -> NTuple{3,Integer}
+
+Calculates the gcd and Bézout coefficients with the Kannan-Bachem modification.
+"""
+function gcd_kb(x::Integer, y::Integer)
+    (r,p,q) = gcdx(x,y)
+    # Check if 
+    if q > x && q > y
+        (a,b) = ((x,y),) |> (minimum, maximum)
+        p = p + fld(q,a) * b
+        q = q - fld(q,a) * a
+    end
+    return (r,p,q)
+end
+
 export isunimodular
 
 include("hermite.jl")
