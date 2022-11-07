@@ -106,7 +106,7 @@ function snf_ma!(A::AbstractMatrix{<:Integer})
         end
         # Loop until all off-diagonal elements are zero
         # No need to do this if A[k,k] is the last diagonal entry
-        counter = 0
+        # counter = 0
         while !all(iszero, (A[k,k+1:end], A[k+1:end,k]))
             # Zero the off-diagonal elements across the row: A[k,k+1:end]
             # @info "row = $row, col = $col"
@@ -158,11 +158,13 @@ function snf_ma!(A::AbstractMatrix{<:Integer})
             @info "A = " * repr("text/plain", A) * 
                 "\nA[$k,$(k+1):end] = " * repr(A[k,k+1:end]) *
                 "\nA[$(k+1):end,$k] = " * repr(A[k+1:end,k])
+            #=
             counter += 1
             @info "On iteration $counter (k = $k)"
             if counter == 32
                 error("We got stuck.")
             end
+            =#
         end
     end
     return (A, U, V, 0)
