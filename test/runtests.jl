@@ -14,12 +14,14 @@ using StaticArrays
         @test S.U * M * S.V == S.S
     end
     @testset "SMatrix" begin
-        S = SMatrix{3,3,Int}([-2 1 1; 2 -1 1; 2 1 -1])
-        Fr = hnfr(S)
-        Fc = hnfc(S)
+        M = SMatrix{3,3,Int}([-2 1 1; 2 -1 1; 2 1 -1])
+        Fr = hnfr(M)
+        Fc = hnfc(M)
+        S = snf(M)
         @test isbits(Fr)
-        @test S * Fc.U == Fc.H
-        @test Fr.U * S == Fr.H
+        @test M * Fc.U == Fc.H
+        @test Fr.U * M == Fr.H
+        @test S.U * M * S.V == S.S
     end
 end
 
