@@ -143,8 +143,10 @@ function hnf_ma!(
     # Create the unimodular matrix as an identity matrix
     U = diagm(ones(eltype(A), size(A,2)))
     # Convert to a transpose 
-    if A isa Union{Adjoint,Transpose}
+    if A isa Adjoint
         U = U'
+    elseif A isa Transpose
+        U = transpose(U)
     end
     # Loop through each row of A
     @inbounds for k in axes(A,1)

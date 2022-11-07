@@ -63,12 +63,13 @@ function snf_ma!(A::AbstractMatrix{<:Integer})
     # Create the left and right unimodular matrices
     U = diagm(ones(eltype(A), size(A,1)))
     V = diagm(ones(eltype(A), size(A,2)))
-    # Convert to a transpose
-    # TODO: Do we need to do this here?
-    # And might it make sense to reverse the definitions so that U = V' and V = U'?
-    if A isa Union{Adjoint,Transpose}
+    # Convert to a transpose or adjoint if needed
+    if A isa Adjoint
         U = U'
         V = V'
+    elseif A isa Transpose
+        U = transpose(U)
+        V = transpose(V)
     end
     # Loop through each row of A
     for k in minimum(axes(A))
