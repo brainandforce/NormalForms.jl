@@ -137,9 +137,8 @@ The original implementation may be found here: https://github.com/YingboMa/Hermi
 """
 function hnf_ma!(
     A::AbstractMatrix{<:Integer},
-    R::RoundingMode = NegativeOffDiagonal,
-    ::Val{diagonalize} = Val{false}(),
-) where {diagonalize}
+    R::RoundingMode = NegativeOffDiagonal
+)
     # Create the unimodular matrix as an identity matrix
     U = diagm(ones(eltype(A), size(A,2)))
     # Convert to a transpose 
@@ -197,37 +196,16 @@ function hnf_ma!(
         end
         # Skip the extra steps if k is not in the largest leading minor
         k <= size(A,2) || continue
-        # Does this calculate a different transform?
-        if diagonalize
-            # Zero out A[k, 1:k-1] === A21[1, 1:k-1] by doing
-            # A[:, j] = A[:, [k j]] * [-A[k, j], A[k, k]]
-            #
-            # Note that we then have:
-            #   A[k, j] = A[k, [k j]] * [-A[k, j], A[k, k]]
-            # = A[k, k] * -A[k, j] + A[k, j] * A[k, k] = 0
-            for j in 1:k-1
-                Akk, Akj = A[ki,k], A[ki, j]
-                d = gcd(A[ki,k], A[ki, j])
-                Akkd, Akjd = div(A[ki,k], d), div(A[ki,j], d)
-
-                Ak, Aj = A[:,k], A[:,j]
-                A[:,j] = -Ak * Akjd + Aj * Akkd
-
-                Uk, Uj = U[:,k], U[:,j]
-                U[:,j] = -Uk * Akjd + Uj * Akkd
-            end
-        else
-            # Make the diagonal element positive
-            if A[ki, k] < zero(eltype(A))
-                @. A[:,k] = -A[:,k]
-                @. U[:,k] = -U[:,k]
-            end
-            # Minimize the off-diagonal elements
-            for j = 1:k-1
-                mul = div(A[ki,j], A[ki,k], R)
-                @. A[:,j] -= mul * A[:,k]
-                @. U[:,j] -= mul * U[:,k]
-            end
+        # Make the diagonal element positive
+        if A[ki, k] < zero(eltype(A))
+            @. A[:,k] = -A[:,k]
+            @. U[:,k] = -U[:,k]
+        end
+        # Minimize the off-diagonal elements
+        for j = 1:k-1
+            mul = div(A[ki,j], A[ki,k], R)
+            @. A[:,j] -= mul * A[:,k]
+            @. U[:,j] -= mul * U[:,k]
         end
     end
     return (A, U, 0)
