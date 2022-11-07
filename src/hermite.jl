@@ -149,7 +149,6 @@ function hnf_ma!(
     end
     # Loop through each row of A
     @inbounds for k in axes(A,1)
-        # Set k as a default pivot
         pivot = find_pivot(A,k)
         # It's not entirely clear to me what ki does.
         if iszero(pivot)
@@ -160,11 +159,8 @@ function hnf_ma!(
             isnothing(ki) ? continue : (ki += k) # what does it mean when ki > k...
         else
             ki = k
-            # Permute columns according to the pivot if needed
-            if pivot != k
-                A[:,[pivot,k]] = A[:,[k,pivot]]
-                U[:,[pivot,k]] = U[:,[k,pivot]]
-            end
+            swapcols!(A, pivot, k)
+            swapcols!(U, pivot, k)
         end
         # Zero the off-diagonal elements: A[k,1:k-1]
         for j in axes(A,2)[k+1:end]

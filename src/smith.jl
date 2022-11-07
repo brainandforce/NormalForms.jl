@@ -82,13 +82,8 @@ function snf_ma!(A::AbstractMatrix{<:Integer})
             isnothing(ki) ? continue : (ki += k) # what does it mean when ki > k...
         else
             ki = k
-            # Permute rows according to the pivot if needed
-            if pivot != k
-                # TODO: Is this the right set of operations?
-                A[:,[pivot,k]] = A[:,[k,pivot]]
-                # We're only pivoting by column: U[[pivot,k],:] = U[[k,pivot],:]
-                V[:,[pivot,k]] = V[:,[k,pivot]]
-            end
+            swapcols!(A, pivot, k)
+            swapcols!(V, pivot, k)
         end
         # Loop until all off-diagonal elements are zero
         counter = 0

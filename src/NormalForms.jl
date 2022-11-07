@@ -3,7 +3,7 @@ module NormalForms
 using LinearAlgebra
 using Requires
 import LinearAlgebra: det_bareiss as detb
-import Base: promote_typeof
+import Base: promote_typeof, swaprows!, swapcols!
 
 include("algorithms.jl")
 export isunimodular
