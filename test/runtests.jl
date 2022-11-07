@@ -1,8 +1,11 @@
 using Test
+using Aqua
 using NormalForms
 using StaticArrays
 
-@testset "NormalForms.jl" begin
+Aqua.test_all(NormalForms; project_toml_formatting=false)
+
+@testset "NormalForms.jl" verbose=true begin
     # Write your tests here.
     @testset "Known square matrix" begin
         M = [-2 1 1; 2 -1 1; 2 1 -1]
