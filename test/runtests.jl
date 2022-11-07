@@ -23,6 +23,24 @@ using StaticArrays
         @test Fr.U * M == Fr.H
         @test S.U * M * S.V == S.S
     end
+    @testset "Transposes" begin
+        M = [-2 1 1; 2 -1 1; 2 1 -1]
+        Fr = hnfr(transpose(M))
+        Fc = hnfc(transpose(M))
+        S = snf(transpose(M))
+        @test transpose(M) * Fc.U == Fc.H
+        @test Fr.U * transpose(M) == Fr.H
+        @test S.U * transpose(M) * S.V == S.S
+    end
+    @testset "Adjoints" begin
+        M = [-2 1 1; 2 -1 1; 2 1 -1]
+        Fr = hnfr(M')
+        Fc = hnfc(M')
+        S = snf(M')
+        @test M' * Fc.U == Fc.H
+        @test Fr.U * M' == Fr.H
+        @test S.U * M' * S.V == S.S
+    end
 end
 
 #= Known problem matrices:
