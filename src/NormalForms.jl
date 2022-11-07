@@ -5,42 +5,8 @@ using Requires
 import LinearAlgebra: det_bareiss as detb
 import Base: promote_typeof
 
-"""
-    isunimodular(M::AbstractMatrix)
-
-Returns `true` if a matrix is unimodular. A unimodular matrix is a square integer matrix with A
-determinant equal to 1 or -1.
-"""
-isunimodular(M::AbstractMatrix{<:Integer}) = size(M,1) == size(M,2) && isone(abs(detb(M)))
-
-function isunimodular(M::AbstractMatrix)
-    try
-        isunimodular(Int.(M))
-    catch e
-        e isa InexactError ? false : throw(e)
-    end
-end
-
-export isunimodular
-
-"""
-    NormalForms.gcd_kb(x::Integer, y::Integer) -> NTuple{3,Integer}
-
-Calculates the gcd and Bézout coefficients with the Kannan-Bachem modification.
-"""
-function gcd_kb(x::Integer, y::Integer)
-    (r,p,q) = gcdx(x,y)
-    # Check if 
-    if q > x && q > y
-        (a,b) = ((x,y),) |> (minimum, maximum)
-        p = p + fld(q,a) * b
-        q = q - fld(q,a) * a
-    end
-    return (r,p,q)
-end
-
 include("algorithms.jl")
-
+export isunimodular
 include("hermite.jl")
 export AbstractHermite, RowHermite, ColumnHermite
 export NegativeOffDiagonal, PositiveOffDiagonal
