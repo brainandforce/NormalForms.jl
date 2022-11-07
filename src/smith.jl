@@ -72,21 +72,7 @@ function snf_ma!(A::AbstractMatrix{<:Integer})
     end
     # Loop through the smallest dimension of A
     for k in minimum(axes(A))
-        # Set k as a default pivot
-        pivot = k
-        # If k has a diagonal and it's zero, change the pivot
-        if k <= minimum(size(A)) && iszero(A[k,k])
-            # Loop through each element of row k
-            for j in axes(A,2)[k+1:end]
-                # Set the pivot to a nonzero element
-                if A[k,j] != zero(eltype(A))
-                    pivot = j
-                    # We probably should break here to get the *first* nonzero element...
-                end
-            end
-            # If no pivot is found, set the pivot to 0 to indicate rank deficiency
-            pivot == k && (pivot = zero(pivot))
-        end
+        pivot = find_pivot(A,k)
         # It's not entirely clear to me what ki does.
         if iszero(pivot)
             # Set ki to the first nonzero column member
