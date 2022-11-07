@@ -21,6 +21,8 @@ function isunimodular(M::AbstractMatrix)
     end
 end
 
+export isunimodular
+
 """
     NormalForms.gcd_kb(x::Integer, y::Integer) -> NTuple{3,Integer}
 
@@ -36,8 +38,6 @@ function gcd_kb(x::Integer, y::Integer)
     end
     return (r,p,q)
 end
-
-export isunimodular
 
 include("hermite.jl")
 export AbstractHermite, RowHermite, ColumnHermite
