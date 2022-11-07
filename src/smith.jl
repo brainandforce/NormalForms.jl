@@ -47,7 +47,7 @@ end
 function Base.show(io::IO, mime::MIME"text/plain", F::Smith)
     if issuccess(F)
         summary(io, F)
-        println(io, "\nHermite normal form:")
+        println(io, "\nSmith normal form:")
         Base.show(io, mime, F.S)
         println(io, "\nLeft unimodular factor:")
         Base.show(io, mime, F.U)
@@ -101,6 +101,7 @@ function snf_ma!(A::AbstractMatrix{<:Integer})
             end
         end
     end
+    # TODO: Divisibility checks.
     return (A, U, V, 0)
 end
 

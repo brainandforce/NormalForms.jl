@@ -104,8 +104,6 @@ are tracked in the matrix `U`, which will only undergo unimodular transforms.
     end
 end
 
-zero_row!(::Union{Diagonal,LowerTriangular}, args...) = nothing
-
 """
     NormalForms.zero_col!(
         A::AbstractMatrix{<:Integer},
@@ -138,8 +136,6 @@ are tracked in the matrix `U`, which will only undergo unimodular transforms.
         # @assert isunimodular(U)
     end
 end
-
-zero_col!(::Union{Diagonal,UpperTriangular}, args...) = nothing
 
 """
     NormalForms.reduce_off_diagonal!(
