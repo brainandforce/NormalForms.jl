@@ -2,10 +2,8 @@ module NormalForms
 
 using LinearAlgebra
 using Requires
-import Base.setindex
-
-# Efficient algorithm for calculating determinants of integer matrices
-const detb = LinearAlgebra.det_bareiss
+import LinearAlgebra: det_bareiss as detb
+import Base: promote_typeof
 
 """
     isunimodular(M::AbstractMatrix)
