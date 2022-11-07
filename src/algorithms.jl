@@ -38,8 +38,8 @@ Calculates the gcd and Bézout coefficients with the Kannan-Bachem modification.
 function gcd_kb(x::Integer, y::Integer)
     (r,p,q) = gcdx(x,y)
     # Check if 
-    if q > x && q > y
-        (a,b) = ((x,y),) |> (minimum, maximum)
+    if q >= x && q >= y
+        (a,b) = ((x,y),) .|> (minimum, maximum)
         p = p + fld(q,a) * b
         q = q - fld(q,a) * a
     end
@@ -90,7 +90,7 @@ are tracked in the matrix `U`, which will only undergo unimodular transforms.
 )
     # This can safely be skipped if k is the last element
     k < last(axes(A,2)) && for j in axes(A,2)[k+1:end]
-        (d, p, q) = gcdx(A[ki, k], A[ki, j])
+        (d, p, q) = gcd_kb(A[ki, k], A[ki, j])
         Akkd, Akjd = div(A[ki, k], d), div(A[ki, j], d)
         # Mutating A
         Ak, Aj = A[:,k], A[:,j]
@@ -123,7 +123,7 @@ are tracked in the matrix `U`, which will only undergo unimodular transforms.
 )
     # This can safely be skipped if k is the last element
     k < last(axes(A,1)) && for j in axes(A,1)[k+1:end]
-        (d, p, q) = gcdx(A[k, ki], A[j, ki])
+        (d, p, q) = gcd_kb(A[k, ki], A[j, ki])
         Akkd, Ajkd = div(A[k, ki], d), div(A[j, ki], d)
         # Mutating A to zero the upper off-diagonal elements
         Ak, Aj = A[k,:], A[j,:]
