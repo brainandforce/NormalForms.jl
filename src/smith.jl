@@ -106,19 +106,20 @@ function snf_ma!(A::AbstractMatrix{<:Integer})
         end
         # Loop until all off-diagonal elements are zero
         # No need to do this if A[k,k] is the last diagonal entry
-        # counter = 0
+        counter = 0
         while !all(iszero, (A[k,k+1:end], A[k+1:end,k]))
-            # Zero the off-diagonal elements across the row: A[k,1:k-1]
-            # Track whether to iterate through rows and columns
-            row, col = k .< size(A)
+            # Zero the off-diagonal elements across the row: A[k,k+1:end]
             # @info "row = $row, col = $col"
-            col && for j in axes(A,2)[k+1:end]
+            k < size(A,2) && for j in axes(A,2)[k+1:end]
                 # Generate the matrix elements for this transform
                 Akk, Akj = A[ki, k], A[ki, j]
                 (d, p, q) = gcdx(Akk, Akj)
                 # Rounding is irrelevant since d is the gcd
                 Akkd, Akjd = div(Akk, d), div(Akj, d)
-                # @info string("D_row = ", repr("text/plain", [p Akjd; q Akkd]))
+                if j == 2
+                    @info "D_col = " * repr("text/plain", [p -Akjd; q Akkd]) *
+                        "\nA[:,$k] = " * repr(A[:,k]) * "\nA[:,$j] = " * repr(A[:,j])
+                end
                 # Mutating A to zero the upper off-diagonal elements
                 Ak, Aj = A[:,k], A[:,j]
                 A[:,k] =  Ak * p + Aj * q
@@ -129,14 +130,21 @@ function snf_ma!(A::AbstractMatrix{<:Integer})
                 V[:,j] = -Vk * Akjd + Vj * Akkd
                 # @assert isunimodular(V)
             end
-            # Now zero them across the column: A[1:k-1,k]
-            row && for j in axes(A,1)[k+1:end]
+            @info "A = " * repr("text/plain", A) * 
+                "\nA[$k,$(k+1):end] = " * repr(A[k,k+1:end]) *
+                "\nA[$(k+1):end,$k] = " * repr(A[k+1:end,k])
+            # Now zero them across the column: A[k+1:end,k]
+            k < size(A,1) && for j in axes(A,1)[k+1:end]
                 # Generate the matrix elements for this transform
                 Akk, Ajk = A[k, ki], A[j, ki]
                 (d, p, q) = gcdx(Akk, Ajk)
                 # Rounding is irrelevant since d is the gcd
                 Akkd, Ajkd = div(Akk, d), div(Ajk, d)
-                # @info string("D_col = ", repr("text/plain", [p q; Ajkd Akkd]))
+                if j == 2
+                    @info "D_col = " * repr("text/plain", [p q ;-Ajkd Akkd]) *
+                        "\nA[$k,:] = " * repr(A[k,:]) * "\nA[$j,:] = " * repr(A[j,:])
+                end
+                # @info string("D_row = ", repr("text/plain", [p q; Ajkd Akkd]))
                 # Mutating A to zero the upper off-diagonal elements
                 Ak, Aj = A[k,:], A[j,:]
                 A[k,:] =  Ak * p + Aj * q
@@ -147,15 +155,14 @@ function snf_ma!(A::AbstractMatrix{<:Integer})
                 U[j,:] = -Uk * Ajkd + Uj * Akkd
                 # @assert isunimodular(U)
             end
-            #=
-            @info "A = " * repr("text/plain", A)
-            @info "A[$k,$(k+1):end] = " * repr(A[k,k+1:end])
-            @info "A[$(k+1):end,$k] = " * repr(A[k+1:end,k])
+            @info "A = " * repr("text/plain", A) * 
+                "\nA[$k,$(k+1):end] = " * repr(A[k,k+1:end]) *
+                "\nA[$(k+1):end,$k] = " * repr(A[k+1:end,k])
             counter += 1
-            if counter == 64
+            @info "On iteration $counter (k = $k)"
+            if counter == 32
                 error("We got stuck.")
             end
-            =#
         end
     end
     return (A, U, V, 0)
