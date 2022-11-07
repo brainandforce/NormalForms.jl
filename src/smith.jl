@@ -60,8 +60,8 @@ end
 
 function snf_ma!(A::AbstractMatrix{<:Integer})
     # Create the left and right unimodular matrices
-    U = diagm(ones(eltype(A), size(A,1)))
-    V = diagm(ones(eltype(A), size(A,2)))
+    U = eye(A,1)
+    V = eye(A,2)
     # Convert to a transpose or adjoint if needed
     if A isa Adjoint
         U = U'
@@ -70,7 +70,7 @@ function snf_ma!(A::AbstractMatrix{<:Integer})
         U = transpose(U)
         V = transpose(V)
     end
-    # Loop through each row of A
+    # Loop through the smallest dimension of A
     for k in minimum(axes(A))
         # Set k as a default pivot
         pivot = k
@@ -105,8 +105,7 @@ function snf_ma!(A::AbstractMatrix{<:Integer})
             end
         end
         # Loop until all off-diagonal elements are zero
-        # No need to do this if A[k,k] is the last diagonal entry
-        # counter = 0
+        counter = 0
         while !all(iszero, (A[k,k+1:end], A[k+1:end,k]))
             # Zero the off-diagonal elements across the row: A[k,k+1:end]
             # @info "row = $row, col = $col"
@@ -149,7 +148,6 @@ function snf_ma!(A::AbstractMatrix{<:Integer})
                 U[j,:] = -Uk * Ajkd + Uj * Akkd
                 # @assert isunimodular(U)
             end
-            #=
             @info "A = " * repr("text/plain", A) * 
                 "\nA[$k,$(k+1):end] = " * repr(A[k,k+1:end]) *
                 "\nA[$(k+1):end,$k] = " * repr(A[k+1:end,k])
@@ -158,7 +156,6 @@ function snf_ma!(A::AbstractMatrix{<:Integer})
             if counter == 32
                 error("We got stuck.")
             end
-            =#
         end
     end
     return (A, U, V, 0)

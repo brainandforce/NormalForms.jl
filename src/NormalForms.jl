@@ -39,6 +39,8 @@ function gcd_kb(x::Integer, y::Integer)
     return (r,p,q)
 end
 
+include("algorithms.jl")
+
 include("hermite.jl")
 export AbstractHermite, RowHermite, ColumnHermite
 export NegativeOffDiagonal, PositiveOffDiagonal

@@ -140,7 +140,7 @@ function hnf_ma!(
     R::RoundingMode = NegativeOffDiagonal
 )
     # Create the unimodular matrix as an identity matrix
-    U = diagm(ones(eltype(A), size(A,2)))
+    U = eye(A,2)
     # Convert to a transpose 
     if A isa Adjoint
         U = U'
