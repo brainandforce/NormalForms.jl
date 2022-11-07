@@ -116,10 +116,6 @@ function snf_ma!(A::AbstractMatrix{<:Integer})
                 (d, p, q) = gcdx(Akk, Akj)
                 # Rounding is irrelevant since d is the gcd
                 Akkd, Akjd = div(Akk, d), div(Akj, d)
-                if j == 2
-                    @info "D_col = " * repr("text/plain", [p -Akjd; q Akkd]) *
-                        "\nA[:,$k] = " * repr(A[:,k]) * "\nA[:,$j] = " * repr(A[:,j])
-                end
                 # Mutating A to zero the upper off-diagonal elements
                 Ak, Aj = A[:,k], A[:,j]
                 A[:,k] =  Ak * p + Aj * q
@@ -130,9 +126,11 @@ function snf_ma!(A::AbstractMatrix{<:Integer})
                 V[:,j] = -Vk * Akjd + Vj * Akkd
                 # @assert isunimodular(V)
             end
+            #=
             @info "A = " * repr("text/plain", A) * 
                 "\nA[$k,$(k+1):end] = " * repr(A[k,k+1:end]) *
                 "\nA[$(k+1):end,$k] = " * repr(A[k+1:end,k])
+            =#
             # Now zero them across the column: A[k+1:end,k]
             k < size(A,1) && for j in axes(A,1)[k+1:end]
                 # Generate the matrix elements for this transform
@@ -140,10 +138,6 @@ function snf_ma!(A::AbstractMatrix{<:Integer})
                 (d, p, q) = gcdx(Akk, Ajk)
                 # Rounding is irrelevant since d is the gcd
                 Akkd, Ajkd = div(Akk, d), div(Ajk, d)
-                if j == 2
-                    @info "D_col = " * repr("text/plain", [p q ;-Ajkd Akkd]) *
-                        "\nA[$k,:] = " * repr(A[k,:]) * "\nA[$j,:] = " * repr(A[j,:])
-                end
                 # @info string("D_row = ", repr("text/plain", [p q; Ajkd Akkd]))
                 # Mutating A to zero the upper off-diagonal elements
                 Ak, Aj = A[k,:], A[j,:]
@@ -155,10 +149,10 @@ function snf_ma!(A::AbstractMatrix{<:Integer})
                 U[j,:] = -Uk * Ajkd + Uj * Akkd
                 # @assert isunimodular(U)
             end
+            #=
             @info "A = " * repr("text/plain", A) * 
                 "\nA[$k,$(k+1):end] = " * repr(A[k,k+1:end]) *
                 "\nA[$(k+1):end,$k] = " * repr(A[k+1:end,k])
-            #=
             counter += 1
             @info "On iteration $counter (k = $k)"
             if counter == 32
