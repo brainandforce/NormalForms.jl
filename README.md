@@ -19,6 +19,31 @@ StaticArrays.jl, and methods are available for `SMatrix`, which cannot be mutate
 This package is written to be compatible with the lastest LTS (Julia 1.6 as of the most recent
 commit).
 
+# Installation
+
+NormalForms.jl will be in the Julia package registry soon! To install, just use the package
+manager:
+```
+(@v1.8) pkg> add NormalForms
+```
+Alternatively: 
+```
+julia> import Pkg
+
+Pkg.add("NormalForms")
+```
+You can also add the repo URL, with an optional specifier for the branch you want to track. By
+default, it tracks `main`. `release` matches the package state in the General repo.
+```
+(@v1.8) pkg> add https://github.com/brainandforce/NormalForms.jl#branchname
+```
+Alternatively: 
+```
+julia> import Pkg
+
+Pkg.add("https://github.com/brainandforce/NormalForms.jl", rev="branchname")
+```
+
 # To-do list
 
 The main issues that need to be addressed are writing up documentation for the package (including 
