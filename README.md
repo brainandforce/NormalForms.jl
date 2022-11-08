@@ -21,9 +21,11 @@ calculate exact integer determinants.
 
 # To-do list
 
-This package is not complete by any means, and the following outstanding issues exist:
-  * Smith normal forms are not yet available.
-  * Documentation and testing are far from complete.
+The main issues that need to be addressed are writing up documentation for the package (including 
+both the public API and the internals) and covering more code with testing.
+
+Of course, check the Issues tab to see if there's anything that could use help, or if you find an
+issue that needs addressing.
 
 # See also
 
