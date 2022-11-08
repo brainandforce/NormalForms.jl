@@ -16,6 +16,7 @@ struct Smith{T<:Integer,M<:AbstractMatrix{T}} <: Factorization{T}
         V::AbstractMatrix{<:Integer},
         info::Integer = 0
     )
+        @assert isdiag(S) "S is not diagonal."
         @assert isunimodular(U) "U is not unimodular."
         @assert isunimodular(V) "V is not unimodular."
         @assert size(S,1) == size(U,2) string(
@@ -38,7 +39,8 @@ Base.iterate(F::Smith, ::Val{:U}) = (F.U, Val{:V}())
 Base.iterate(F::Smith, ::Val{:V}) = (F.V, nothing)
 Base.iterate(F::Smith, ::Nothing) = nothing
 
-issuccess(F::Smith) = iszero(F.info)
+LinearAlgebra.issuccess(F::Smith) = iszero(F.info)
+LinearAlgebra.diag(F::Smith) = diag(F.S)
 
 function Base.summary(io::IO, F::Smith)
     print(io, join(size(F.S), '×'), ' ', typeof(F), ":")

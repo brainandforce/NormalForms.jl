@@ -12,7 +12,8 @@ Base.iterate(F::AbstractHermite, ::Val{:H}) = iterate(F)
 Base.iterate(F::AbstractHermite, ::Val{:U}) = (F.H, nothing)
 Base.iterate(F::AbstractHermite, ::Nothing) = nothing
 
-issuccess(H::AbstractHermite) = iszero(H.info)
+LinearAlgebra.issuccess(H::AbstractHermite) = iszero(H.info)
+LinearAlgebra.diag(H::AbstractHermite) = diag(H.H)
 
 """
     RowHermite{T<:Integer,M<:AbstractMatrix{T}}
