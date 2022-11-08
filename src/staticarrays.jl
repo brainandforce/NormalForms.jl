@@ -1,7 +1,8 @@
 using .StaticArrays
 
+# Matrix appears slightly faster, but MMatrix allocates less memory
 # TODO: perhaps extend this for the sake of StaticArrays?
-detb(M::SMatrix) = LinearAlgebra.det_bareiss!(convert(MMatrix, M))
+detb(M::SMatrix) = detb!(convert(MMatrix, M))
 
 function hnfc(M::SMatrix{D1,D2,<:Integer}, R::RoundingMode = NegativeOffDiagonal) where {D1,D2}
     (H, U, info) = hnf_ma!(MMatrix(M), R)
