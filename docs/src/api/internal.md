@@ -1,5 +1,9 @@
 # Internal APIs
 
+```@meta
+CurrentModule = NormalForms
+```
+
 Most users should not need to read this section: it's primarily intended for those who would like
 to contribute to the package.
 
