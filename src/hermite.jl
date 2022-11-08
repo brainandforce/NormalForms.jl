@@ -9,7 +9,7 @@ end
 # Component destructuring
 Base.iterate(F::AbstractHermite) = (F.H, Val{:U}())
 Base.iterate(F::AbstractHermite, ::Val{:H}) = iterate(F)
-Base.iterate(F::AbstractHermite, ::Val{:U}) = (F.H, nothing)
+Base.iterate(F::AbstractHermite, ::Val{:U}) = (F.U, nothing)
 Base.iterate(F::AbstractHermite, ::Nothing) = nothing
 
 LinearAlgebra.issuccess(H::AbstractHermite) = iszero(H.info)
