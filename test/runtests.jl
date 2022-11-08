@@ -1,12 +1,21 @@
 using Test
 using Aqua
 using NormalForms
+using LinearAlgebra
 using StaticArrays
 
 Aqua.test_all(NormalForms; project_toml_formatting=false)
 
 @testset "NormalForms.jl" verbose=true begin
-    # Write your tests here.
+    @testset "Factorization assertions" begin
+        # Diagonal checks for Smith normal form
+        @test_throws AssertionError Smith([0 1; 1 0], diagm([1,1]), diagm([1,1]))
+        # Unimodular checks
+        @test_throws AssertionError Smith(diagm([1,2,3]), diagm([1,2,3]), diagm([1,1,1]))
+        @test_throws AssertionError Smith(diagm([1,2,3]), diagm([1,1,1]), diagm([1,2,3]))
+        @test_throws AssertionError RowHermite(diagm([1,2,3]), diagm([1,2,3]))
+        @test_throws AssertionError ColumnHermite(diagm([1,2,3]), diagm([1,2,3]))
+    end
     @testset "Known square matrix" begin
         M = [-2 1 1; 2 -1 1; 2 1 -1]
         Fr = hnfr(M)
