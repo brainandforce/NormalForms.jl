@@ -60,6 +60,17 @@ function Base.show(io::IO, mime::MIME"text/plain", F::Smith)
     end
 end
 
+"""
+    NormalForms.snf_ma!(A::AbstractMatrix{<:Integer})
+        -> Tuple{typeof(A), typeof(A), typeof(A), LinearAlgebra.BlasInt}
+
+A modified version of `HermiteNormalForm._hnf_like!()` that calculates the Smith normal form of a
+matrix in-place, returning `A`, the unimodular matrices `U` and `V` such that `S == U*A*V`, and the
+factorization info (zero if success - matching LinearAlgebra factorizations).
+
+The original implementation of `HermiteNormalForm._hnf_like!()` was written by Yingbo Ma, and may
+be found here: https://github.com/YingboMa/HermiteNormalForm.jl/
+"""
 function snf_ma!(A::AbstractMatrix{<:Integer})
     # Create the left and right unimodular matrices
     U = eye(A,1)

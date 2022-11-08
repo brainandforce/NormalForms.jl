@@ -10,7 +10,7 @@ eye(T::Type, sz) = Matrix{T}(LinearAlgebra.I(sz))
 
 Generates an identity matrix of the same size as dimension `dim` of `M`.
 """
-eye(M::AbstractMatrix{T}, dim) where T = eye(T, size(M)[dim])
+eye(M::AbstractMatrix{T}, dim) where T = eye(T, size(M, dim))
 
 """
     NormalForms.detb!(M::AbstractMatrix)
@@ -43,7 +43,7 @@ function detb!(M::AbstractMatrix)
 end
 
 """
-    NormalForms.det_bareiss(M::AbstractMatrix) -> eltype(M)
+    NormalForms.detb(M::AbstractMatrix) -> eltype(M)
 
 Calculates the determinant of a matrix using the [Bareiss
 Algorithm](https://en.wikipedia.org/wiki/Bareiss_algorithm) without modifying `M`.
@@ -208,7 +208,18 @@ be negative. If set to `RoundDown` or `PositiveOffDiagonal`, they will be positi
     end
 end
 
-function enforce_divisibility!(A, U, V, k)
+"""
+    NormalForms.enforce_divisibility!(
+        A::AbstractMatrix,
+        U::AbstractMatrix,
+        V::AbstractMatrix,
+        k::Integer
+    )
+
+Ensures that diagonal element `k` is a multiple of diagonal element `k-1` by mutating `A` as well
+as the pre-multiplied matrix `U` and post-multiplied matrix `V`.
+"""
+function enforce_divisibility!(A::AbstractMatrix, U::AbstractMatrix, V::AbstractMatrix, k::Integer)
     # No need to act if there are no previous diagonal entries
     all(isequal(k), first.(axes(A))) && return nothing
     # We want to make A[k-1, k-1] == d

@@ -104,15 +104,15 @@ const NegativeOffDiagonal = RoundUp
 """
     NormalForms._hnf_ma!(
         A::AbstractMatrix{<:Integer},
-        R::RoundingMode = NegativeOffDiagonal,
-        ::Val{diagonalize} = Val{true}(),
+        R::RoundingMode = NegativeOffDiagonal
     ) -> Tuple{typeof(A), typeof(A), LinearAlgebra.BlasInt}
 
 A modified version of `HermiteNormalForm._hnf_like!()` that calculates the column-style Hermite
-normal form of a matrix in-place, returning `A`, the unimodular matrix `U` such that `H == AU`, and
-the factorization info (zero if success - matching LinearAlgebra factorizations).
+normal form of a matrix in-place, returning `A`, the unimodular matrix `U` such that `H == A*U`,
+and the factorization info (zero if success - matching LinearAlgebra factorizations).
 
-The original implementation may be found here: https://github.com/YingboMa/HermiteNormalForm.jl/
+The original implementation of `HermiteNormalForm._hnf_like!()` was written by Yingbo Ma, and may
+be found here: https://github.com/YingboMa/HermiteNormalForm.jl/
 """
 function hnf_ma!(
     A::AbstractMatrix{<:Integer},
