@@ -29,16 +29,15 @@ issue that needs addressing.
 
 # See also
 
-[HermiteNormalForm.jl](https://github.com/YingboMa/HermiteNormalForm.jl)
-
-[SmithNormalForm.jl](https://github.com/wildart/SmithNormalForm.jl) (Not available in the General
-packge repository)
+* [HermiteNormalForm.jl](https://github.com/YingboMa/HermiteNormalForm.jl) (This package adapts some
+code from here)
+* [SmithNormalForm.jl](https://github.com/wildart/SmithNormalForm.jl) (Not available in the General
+package repository)
 
 For those interested in the Hermite and Smith normal forms in the context of abstract algebra:
 
-[Nemo.jl](https://github.com/Nemocas/Nemo.jl)
-
-[Hecke.jl](https://github.com/thofma/Hecke.jl)
+* [Nemo.jl](https://github.com/Nemocas/Nemo.jl)
+* [Hecke.jl](https://github.com/thofma/Hecke.jl)
 
 [docs-stable-img]:  https://img.shields.io/badge/docs-stable-blue.svg
 [docs-stable-url]:  https://brainandforce.github.io/NormalForms.jl/stable
