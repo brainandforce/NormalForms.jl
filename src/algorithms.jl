@@ -173,7 +173,7 @@ end
 
 function enforce_divisibility!(A, U, V, k)
     # No need to act if there are no previous diagonal entries
-    all(k == first.(axes(A))) && return nothing
+    all(isequal(k), first.(axes(A))) && return nothing
     # We want to make A[k-1, k-1] == d
     # ORDER MATTERS HERE: A[k,k] MUST BE SECOND
     (d,p,q) = gcdx(A[k-1,k-1], A[k,k])
