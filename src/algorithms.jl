@@ -172,7 +172,6 @@ be negative. If set to `RoundDown` or `PositiveOffDiagonal`, they will be positi
 end
 
 function enforce_divisibility!(A, U, V, k)
-    C = deepcopy(A)
     # No need to act if there are no previous diagonal entries
     all(k == first.(axes(A))) && return nothing
     # We want to make A[k-1, k-1] == d
@@ -193,11 +192,9 @@ function enforce_divisibility!(A, U, V, k)
         zero_col!(A, U, k-1)
         zero_row!(A, V, k-1)
     end
-    @assert U*C*V == A
     # Make any off-diagonal elmements positive if they went negative
     for n in (-1:0) .+ k
         U[n,:] *= sign(A[n,n])
         A[n,n] *= sign(A[n,n])
     end
-    @assert U*C*V == A
 end
