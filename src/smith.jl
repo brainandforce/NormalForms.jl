@@ -85,22 +85,12 @@ function snf_ma!(A::AbstractMatrix{<:Integer})
             swapcols!(A, pivot, k)
             swapcols!(V, pivot, k)
         end
-        # Loop until all off-diagonal elements are zero
-        counter = 0
+        # Zero off-diagonal elements across the row, then the column
         while !all(iszero, (A[k,k+1:end], A[k+1:end,k]))
-            # Zero off-diagonal elements across the row, then the column
             zero_row!(A, V, k, ki)
             zero_col!(A, U, k, ki)
-            @info "A = " * repr("text/plain", A) * 
-                "\nA[$k,$(k+1):end] = " * repr(A[k,k+1:end]) *
-                "\nA[$(k+1):end,$k] = " * repr(A[k+1:end,k])
-            counter += 1
-            @info "On iteration $counter (k = $k)"
-            if counter == 32
-                error("We got stuck.")
-            end
         end
-        # Perform some new operations to make A[k,k] divisible by A[k-1,k-1]
+        # Perform some operations to make A[k,k] divisible by A[k-1,k-1]
         enforce_divisibility!(A, U, V, k)
     end
     return (A, U, V, 0)
