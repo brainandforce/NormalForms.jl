@@ -170,3 +170,34 @@ be negative. If set to `RoundDown` or `PositiveOffDiagonal`, they will be positi
         @. U[:,j] -= mul * U[:,k]
     end
 end
+
+function enforce_divisibility!(A, U, V, k)
+    C = deepcopy(A)
+    # No need to act if there are no previous diagonal entries
+    all(k == first.(axes(A))) && return nothing
+    # We want to make A[k-1, k-1] == d
+    # ORDER MATTERS HERE: A[k,k] MUST BE SECOND
+    (d,p,q) = gcdx(A[k-1,k-1], A[k,k])
+    # Keep trying this until F2 divides F1
+    # TODO: does this need to be a while loop?
+    while A[k,k] % A[k-1,k-1] != 0
+        # Swap the columns to make the diagonal entries zero
+        swapcols!(A, k-1, k)
+        swapcols!(V, k-1, k)
+        # Use the Bezout coefficients to make A[k-1,k-1] == d
+        A[k-1,:] += q * A[k,:]
+        U[k-1,:] += q * U[k,:]
+        A[:,k-1] += p * A[:,k]
+        V[:,k-1] += p * V[:,k]
+        # Zero the off-diagonal elements
+        zero_col!(A, U, k-1)
+        zero_row!(A, V, k-1)
+    end
+    @assert U*C*V == A
+    # Make any off-diagonal elmements positive if they went negative
+    for n in (-1:0) .+ k
+        U[n,:] *= sign(A[n,n])
+        A[n,n] *= sign(A[n,n])
+    end
+    @assert U*C*V == A
+end

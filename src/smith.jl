@@ -100,8 +100,9 @@ function snf_ma!(A::AbstractMatrix{<:Integer})
                 error("We got stuck.")
             end
         end
+        # Perform some new operations to make A[k,k] divisible by A[k-1,k-1]
+        enforce_divisibility!(A, U, V, k)
     end
-    # TODO: Divisibility checks.
     return (A, U, V, 0)
 end
 
