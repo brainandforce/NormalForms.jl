@@ -85,43 +85,14 @@ function Base.show(io::IO, mime::MIME"text/plain", F::AbstractHermite)
     end
 end
 
+"""
+    PositiveOffDiagonal
+
+Alias for `RoundDown`. In `NormalForms.reduce_cols_off_diagonal`, this makes all off-diagonal
+elements the smallest positive value possible.
+"""
 const PositiveOffDiagonal = RoundDown
 const NegativeOffDiagonal = RoundUp
-
-#=
-"""
-    NormalForms.kb_bezout(x::Integer, y::Integer)
-
-The modified Euclidean algorithm used in the Kannan-Bachem algorithm for generating the elementary
-matrix operations used in the main loop.
-
-# References
-
-(1) Kannan, R.; Bachem, A. Polynomial Algorithms for Computing the Smith and Hermite Normal Forms
-of an Integer Matrix. SIAM J. Comput. 1979, 8 (4), 499–507. https://doi.org/10.1137/0208040.
-"""
-function kb_bezout(x::Integer, y::Integer)
-    # Order a and b as needed
-    (a,b) = (x,y) .|> (minimum, maximum)
-    (r,p,q) = gcdx(a,b)
-    # Modify p and q if needed
-    if abs(q) > abs(a)
-        p += fld(q,a) * b
-        q -= fld(q,a) * a
-    end
-    return (r,p,q)
-end
-=#
-
-"""
-    HermiteStyle{S}
-
-Determines whether the output of `NormalForms.hnf_kb!()` produces a `RowHermite` or `ColumnHermite`
-output. The possible choices are `RowStyle` (`HermiteStyle{:row}()`) or `ColumnStyle`
-(`HermiteStyle{:col}()`).
-"""
-struct HermiteStyle{S}
-end
 
 """
     NormalForms._hnf_ma!(
