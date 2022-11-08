@@ -88,10 +88,17 @@ end
 """
     PositiveOffDiagonal
 
-Alias for `RoundDown`. In `NormalForms.reduce_cols_off_diagonal`, this makes all off-diagonal
+Alias for `RoundDown`. In `NormalForms.reduce_cols_off_diagonal!()`, this makes all off-diagonal
 elements the smallest positive value possible.
 """
 const PositiveOffDiagonal = RoundDown
+
+"""
+    NegativeOffDiagonal
+
+Alias for `RoundUp`. In `NormalForms.reduce_cols_off_diagonal!()`, this makes all off-diagonal
+elements the smallest positive value possible.
+"""
 const NegativeOffDiagonal = RoundUp
 
 """
