@@ -13,6 +13,44 @@ Generates an identity matrix of the same size as dimension `dim` of `M`.
 eye(M::AbstractMatrix{T}, dim) where T = eye(T, size(M)[dim])
 
 """
+    NormalForms.detb!(M::AbstractMatrix)
+
+Calculates the determinant of a matrix using the [Bareiss 
+algorithm](https://en.wikipedia.org/wiki/Bareiss_algorithm) using in-place operations.
+
+This is a verbatim reimplementation of `LinearAlgebra.det_bareiss()` used to ensure compatibility
+with Julia 1.6, which does not have this function.
+```
+"""
+function detb!(M::AbstractMatrix)
+    exactdiv(a,b) = a/b
+    exactdiv(a::Integer, b::Integer) = div(a,b)
+    n = LinearAlgebra.checksquare(M)
+    sign, prev = Int8(1), one(eltype(M))
+    for i in 1:n-1
+        if iszero(M[i,i]) # swap with another col to make nonzero
+            swapto = findfirst(!iszero, @view M[i,i+1:end])
+            isnothing(swapto) && return zero(prev)
+            sign = -sign
+            Base.swapcols!(M, i, i + swapto)
+        end
+        for k in i+1:n, j in i+1:n
+            M[j,k] = exactdiv(M[j,k]*M[i,i] - M[j,i]*M[i,k], prev)
+        end
+        prev = M[i,i]
+    end
+    return sign * M[end,end]
+end
+
+"""
+    NormalForms.det_bareiss(M::AbstractMatrix) -> eltype(M)
+
+Calculates the determinant of a matrix using the [Bareiss
+Algorithm](https://en.wikipedia.org/wiki/Bareiss_algorithm) without modifying `M`.
+"""
+detb(M::AbstractMatrix) = detb!(copy(M))
+
+"""
     isunimodular(M::AbstractMatrix)
 
 Returns `true` if a matrix is unimodular. A unimodular matrix is a square integer matrix with A
@@ -37,7 +75,6 @@ Calculates the gcd and Bézout coefficients with the Kannan-Bachem modification.
 """
 function gcd_kb(x::Integer, y::Integer)
     (r,p,q) = gcdx(x,y)
-    # Check if 
     if q >= x && q >= y
         (a,b) = ((x,y),) .|> (minimum, maximum)
         p = p + fld(q,a) * b
