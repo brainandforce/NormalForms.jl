@@ -7,6 +7,12 @@ using StaticArrays
 Aqua.test_all(NormalForms; project_toml_formatting=false)
 
 @testset "NormalForms.jl" verbose=true begin
+    @testset "Algorithms" begin
+        # If this fails, Smith normal form calculation may not terminate
+        @test NormalForms.gcd_kb(1,1) === (1,1,0)
+        @test isunimodular(Float64[1 1; 0 1]) === true
+        @test isunimodular([1/2 0; 0 2]) == false
+    end
     @testset "Factorization assertions" begin
         # Diagonal checks for Smith normal form
         @test_throws AssertionError Smith([0 1; 1 0], diagm([1,1]), diagm([1,1]))
@@ -15,6 +21,18 @@ Aqua.test_all(NormalForms; project_toml_formatting=false)
         @test_throws AssertionError Smith(diagm([1,2,3]), diagm([1,1,1]), diagm([1,2,3]))
         @test_throws AssertionError RowHermite(diagm([1,2,3]), diagm([1,2,3]))
         @test_throws AssertionError ColumnHermite(diagm([1,2,3]), diagm([1,2,3]))
+    end
+    @testset "Component destructuring" begin
+        M = [-2 1 1; 2 -1 1; 2 1 -1]
+        Hc = hnfc(M)
+        S = snf(M)
+        @test iterate(Hc, Val{:H}()) === (Hc.H, Val{:U}())
+        @test iterate(Hc, Val{:U}()) === (Hc.U, nothing)
+        @test isnothing(iterate(Hc, nothing))
+        @test iterate(S, Val{:S}()) === (S.S, Val{:U}())
+        @test iterate(S, Val{:U}()) === (S.U, Val{:V}())
+        @test iterate(S, Val{:V}()) === (S.V, nothing)
+        @test isnothing(iterate(S, nothing))
     end
     @testset "Known square matrix" begin
         M = [-2 1 1; 2 -1 1; 2 1 -1]
