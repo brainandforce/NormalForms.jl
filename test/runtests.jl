@@ -43,6 +43,15 @@ Aqua.test_all(NormalForms; project_toml_formatting=false)
         @test Fr.U * M == Fr.H
         @test S.U * M * S.V == S.S
     end
+    @testset "Non-square matrix" begin
+        M = [1 2 -2 -1 -6 -4; -3 -3 -8 -5 -1 2; 4 9 7 7 -1 0; -9 2 2 9 -3 -6]
+        Fr = hnfr(M)
+        Fc = hnfc(M)
+        S = snf(M)
+        @test M * Fc.U == Fc.H
+        @test Fr.U * M == Fr.H
+        @test S.U * M * S.V == S.S
+    end
     @testset "SMatrix" begin
         M = SMatrix{3,3,Int}([-2 1 1; 2 -1 1; 2 1 -1])
         Fr = hnfr(M)
