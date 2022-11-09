@@ -103,8 +103,22 @@ function snf_ma!(A::AbstractMatrix{<:Integer})
             zero_row!(A, V, k, ki)
             zero_col!(A, U, k, ki)
         end
+        @debug string(
+            "Matrix state after zeroing row and column k = $k:",
+            "\nA = ", repr("text/plain", A),
+            "\nU = ", repr("text/plain", A),
+        )
+        @assert isunimodular(U)
+        @assert isunimodular(V)
         # Perform some operations to make A[k,k] divisible by A[k-1,k-1]
         enforce_divisibility!(A, U, V, k)
+        @debug string(
+            "Matrix state after enforcing divisibility at k = $k:",
+            "\nA = ", repr("text/plain", A),
+            "\nU = ", repr("text/plain", A),
+        )
+        @assert isunimodular(U)
+        @assert isunimodular(V)
     end
     return (A, U, V, 0)
 end

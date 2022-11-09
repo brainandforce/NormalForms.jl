@@ -142,8 +142,20 @@ function hnf_ma!(
             swapcols!(U, pivot, k)
         end
         zero_row!(A, U, k, ki)
+        @debug string(
+            "Matrix state after zeroing along row or column k = $k:",
+            "\nA = ", repr("text/plain", A),
+            "\nU = ", repr("text/plain", A),
+        )
+        @assert isunimodular(U)
         # Skip the extra steps if k is not in the largest leading minor
         k <= size(A,2) && reduce_cols_off_diagonal!(A, U, k, ki, R)
+        @debug string(
+            "Matrix state after reducing off-diagonal at k = $k:",
+            "\nA = ", repr("text/plain", A),
+            "\nU = ", repr("text/plain", A),
+        )
+        @assert isunimodular(U)
     end
     return (A, U, 0)
 end
