@@ -131,12 +131,12 @@ are tracked in the matrix `U`, which will only undergo unimodular transforms.
         Akkd, Akjd = div(A[ki, k], d), div(A[ki, j], d)
         # Mutating A
         Ak, Aj = A[:,k], A[:,j]
-        A[:,k] =  Ak * p + Aj * q
-        A[:,j] = -Ak * Akjd + Aj * Akkd
+        @views A[:,k] =  Ak * p + Aj * q
+        @views A[:,j] = -Ak * Akjd + Aj * Akkd
         # Mutating U
         Uk, Uj = U[:,k], U[:,j]
-        U[:,k] =  Uk * p + Uj * q
-        U[:,j] = -Uk * Akjd + Uj * Akkd
+        @views U[:,k] =  Uk * p + Uj * q
+        @views U[:,j] = -Uk * Akjd + Uj * Akkd
         # @assert isunimodular(U)
     end
 end
@@ -164,12 +164,12 @@ are tracked in the matrix `U`, which will only undergo unimodular transforms.
         Akkd, Ajkd = div(A[k, ki], d), div(A[j, ki], d)
         # Mutating A to zero the upper off-diagonal elements
         Ak, Aj = A[k,:], A[j,:]
-        A[k,:] =  Ak * p + Aj * q
-        A[j,:] = -Ak * Ajkd + Aj * Akkd
+        @views A[k,:] =  Ak * p + Aj * q
+        @views A[j,:] = -Ak * Ajkd + Aj * Akkd
         # Mutating U as the matching unimodular matrix
         Uk, Uj = U[k,:], U[j,:]
-        U[k,:] =  Uk * p + Uj * q
-        U[j,:] = -Uk * Ajkd + Uj * Akkd
+        @views U[k,:] =  Uk * p + Uj * q
+        @views U[j,:] = -Uk * Ajkd + Uj * Akkd
         # @assert isunimodular(U)
     end
 end
@@ -232,10 +232,10 @@ function enforce_divisibility!(A::AbstractMatrix, U::AbstractMatrix, V::Abstract
         swapcols!(A, k-1, k)
         swapcols!(V, k-1, k)
         # Use the Bezout coefficients to make A[k-1,k-1] == d
-        A[k-1,:] += q * A[k,:]
-        U[k-1,:] += q * U[k,:]
-        A[:,k-1] += p * A[:,k]
-        V[:,k-1] += p * V[:,k]
+        @views A[k-1,:] += q * A[k,:]
+        @views U[k-1,:] += q * U[k,:]
+        @views A[:,k-1] += p * A[:,k]
+        @views V[:,k-1] += p * V[:,k]
         # Zero the off-diagonal elements
         zero_col!(A, U, k-1)
         zero_row!(A, V, k-1)
