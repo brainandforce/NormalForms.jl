@@ -129,15 +129,25 @@ are tracked in the matrix `U`, which will only undergo unimodular transforms.
     k < last(axes(A,2)) && for j in axes(A,2)[k+1:end]
         (d, p, q) = gcd_kb(A[ki, k], A[ki, j])
         Akkd, Akjd = div(A[ki, k], d), div(A[ki, j], d)
-        # Mutating A
+        for i in axes(A,1)
+            Aik, Aij = A[i,k], A[i,j]
+            A[i,k] =  Aik * p + Aij * q
+            A[i,j] = -Aik * Akjd + Aij * Akkd
+        end
+        for i in axes(U,1)
+            Uik, Uij = U[i,k], U[i,j]
+            U[i,k] =  Uik * p + Uij * q
+            U[i,j] = -Uik * Akjd + Uij * Akkd
+        end
+        #= This is faster than the otherwise equivalent code below:
         Ak, Aj = A[:,k], A[:,j]
         @views A[:,k] =  Ak * p + Aj * q
         @views A[:,j] = -Ak * Akjd + Aj * Akkd
-        # Mutating U
         Uk, Uj = U[:,k], U[:,j]
         @views U[:,k] =  Uk * p + Uj * q
         @views U[:,j] = -Uk * Akjd + Uj * Akkd
-        # @assert isunimodular(U)
+        (It was also faster than using a matrix multiplication)
+        @assert isunimodular(U) =#
     end
 end
 
@@ -162,15 +172,25 @@ are tracked in the matrix `U`, which will only undergo unimodular transforms.
     k < last(axes(A,1)) && for j in axes(A,1)[k+1:end]
         (d, p, q) = gcd_kb(A[k, ki], A[j, ki])
         Akkd, Ajkd = div(A[k, ki], d), div(A[j, ki], d)
-        # Mutating A to zero the upper off-diagonal elements
+        for i in axes(A,2)
+            Aki, Aji = A[k,i], A[j,i]
+            A[k,i] =  Aki * p + Aji * q
+            A[j,i] = -Aki * Ajkd + Aji * Akkd
+        end
+        for i in axes(U,2)
+            Uki, Uji = U[k,i], U[j,i]
+            U[k,i] =  Uki * p + Uji * q
+            U[j,i] = -Uki * Ajkd + Uji * Akkd
+        end
+        #= This is faster than the otherwise equivalent code below:
         Ak, Aj = A[k,:], A[j,:]
         @views A[k,:] =  Ak * p + Aj * q
         @views A[j,:] = -Ak * Ajkd + Aj * Akkd
-        # Mutating U as the matching unimodular matrix
         Uk, Uj = U[k,:], U[j,:]
         @views U[k,:] =  Uk * p + Uj * q
         @views U[j,:] = -Uk * Ajkd + Uj * Akkd
-        # @assert isunimodular(U)
+        (It was also faster than using a matrix multiplication)
+        @assert isunimodular(U) =#
     end
 end
 
@@ -225,24 +245,38 @@ function enforce_divisibility!(A::AbstractMatrix, U::AbstractMatrix, V::Abstract
     # We want to make A[k-1, k-1] == d
     # ORDER MATTERS HERE: A[k,k] MUST BE SECOND
     (d,p,q) = gcdx(A[k-1,k-1], A[k,k])
-    # Keep trying this until F2 divides F1
     # TODO: does this need to be a while loop?
     while A[k,k] % A[k-1,k-1] != 0
         # Swap the columns to make the diagonal entries zero
         swapcols!(A, k-1, k)
         swapcols!(V, k-1, k)
         # Use the Bezout coefficients to make A[k-1,k-1] == d
+        @info "test"
+        for i in axes(A,2)
+            A[k-1,i] += q * A[k,i]
+            V[i,k-1] += p * V[i,k]
+        end
+        for i in axes(A,1)
+            A[i,k-1] += p * A[i,k]
+            U[k-1,i] += q * U[k,i]
+        end
+        #= This is faster than the otherwise equivalent code below
         @views A[k-1,:] += q * A[k,:]
         @views U[k-1,:] += q * U[k,:]
         @views A[:,k-1] += p * A[:,k]
         @views V[:,k-1] += p * V[:,k]
+        =#
         # Zero the off-diagonal elements
         zero_col!(A, U, k-1)
         zero_row!(A, V, k-1)
     end
     # Make any off-diagonal elmements positive if they went negative
+    # The branchless approach here has the same efficiency as a branched one
     for n in (-1:0) .+ k
-        U[n,:] *= sign(A[n,n])
-        A[n,n] *= sign(A[n,n])
+        sg = sign(A[n,n])
+        for i in axes(A,1)
+            U[n,i] *= sg
+        end
+        A[n,n] *= sg
     end
 end
