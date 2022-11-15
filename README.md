@@ -21,8 +21,7 @@ commit).
 
 # Installation
 
-NormalForms.jl will be in the Julia package registry soon! To install, just use the package
-manager:
+NormalForms.jl is now in the Julia package registry! To install, just use the package manager:
 ```
 (@v1.8) pkg> add NormalForms
 ```
