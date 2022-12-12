@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] - 2022-12-12
+
+### Fixed
+  - `snf(::SMatrix{D1,D2,T})` now returns its factors as `SMatrix` types.
+  - The return type of `snf(::SMatrix{D1,D2,T})` is now `Smith{T,SArray{S,T,2}} where S<:Tuple`.
+  - Removed an extraneous `@info` statement from `NormalForms.snf_ma!()`
+
 ## [0.1.1] - 2022-11-08
 
 ### Added
