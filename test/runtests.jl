@@ -88,5 +88,7 @@ end
   2  2  9  7 -5  3
  -2  6  3 -9 -3  5] (hnfc fails - also in HermiteNormalForm.jl)
 
- Anything with [1 1; 0 1] seems to break snf()
+[ -3  -2  -4   0
+ -2   3   2  -2
+ -1   2   2  -2 ] (unimodularity failure)
 =#
