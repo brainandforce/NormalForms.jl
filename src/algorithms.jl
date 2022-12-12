@@ -251,7 +251,6 @@ function enforce_divisibility!(A::AbstractMatrix, U::AbstractMatrix, V::Abstract
         swapcols!(A, k-1, k)
         swapcols!(V, k-1, k)
         # Use the Bezout coefficients to make A[k-1,k-1] == d
-        @info "test"
         for i in axes(A,2)
             A[k-1,i] += q * A[k,i]
             V[i,k-1] += p * V[i,k]
