@@ -69,14 +69,20 @@ end
 # TODO: a unimodular inverse?
 
 """
-    NormalForms.gcd_kb(x::Integer, y::Integer) -> NTuple{3,Integer}
+    NormalForms.gcd_kb(x::Integer, y::Integer) -> NTuple{3,promote_typeof(x,y)}
 
-Calculates the gcd and Bézout coefficients with the Kannan-Bachem modification.
+Calculates the gcd `r` and Bézout coefficients `(p, q)` with the Kannan-Bachem modification. This
+ensures that `q ≤ max(x, y)`.
+
+If `x == y`, this function returns `(x, 1, 0)` - this differs from Julia's `gcdx()`, which returns
+`(x, 0, 1)`. This modification is needed to prevent `snf_ma!()` from looping infinitely when
+zeroing rows and columns.
 """
 function gcd_kb(x::Integer, y::Integer)
+    x == y && return (x, 1, 0)
     (r,p,q) = gcdx(x,y)
-    if q >= x && q >= y
-        (a,b) = ((x,y),) .|> (minimum, maximum)
+    (b,a) = minmax(x,y)
+    if abs(q) > abs(a)
         p = p + fld(q,a) * b
         q = q - fld(q,a) * a
     end
@@ -127,13 +133,19 @@ are tracked in the matrix `U`, which will only undergo unimodular transforms.
 )
     # This can safely be skipped if k is the last element
     k < last(axes(A,2)) && for j in axes(A,2)[k+1:end]
+        # Take the GCD with the Kannen-Bachem modificaion
+        @info "j = $j"
         (d, p, q) = gcd_kb(A[ki, k], A[ki, j])
+        p < q && @warn "Warning: p < q"
         Akkd, Akjd = div(A[ki, k], d), div(A[ki, j], d)
+        @info "\nd = $d, p = $p, q = $q\nAkkd = $Akkd, Akjd = $Akjd"
         for i in axes(A,1)
+            # Make copies for later reference (otherwise the algorithm breaks)
             Aik, Aij = A[i,k], A[i,j]
             A[i,k] =  Aik * p + Aij * q
             A[i,j] = -Aik * Akjd + Aij * Akkd
         end
+        # Modify the unimodular matrix correspondingly
         for i in axes(U,1)
             Uik, Uij = U[i,k], U[i,j]
             U[i,k] =  Uik * p + Uij * q
@@ -170,8 +182,10 @@ are tracked in the matrix `U`, which will only undergo unimodular transforms.
 )
     # This can safely be skipped if k is the last element
     k < last(axes(A,1)) && for j in axes(A,1)[k+1:end]
+        @info "j = $j"
         (d, p, q) = gcd_kb(A[k, ki], A[j, ki])
         Akkd, Ajkd = div(A[k, ki], d), div(A[j, ki], d)
+        @info "\nd = $d, p = $p, q = $q\nAkkd = $Akkd, Ajkd = $Ajkd"
         for i in axes(A,2)
             Aki, Aji = A[k,i], A[j,i]
             A[k,i] =  Aki * p + Aji * q
