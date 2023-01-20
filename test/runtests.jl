@@ -8,8 +8,9 @@ Aqua.test_all(NormalForms; project_toml_formatting=false)
 
 @testset "NormalForms.jl" verbose=true begin
     @testset "Algorithms" begin
-        # If this fails, Smith normal form calculation may not terminate
-        @test NormalForms.gcd_kb(1,1) === (1,1,0)
+        # If this fails, Smith normal form calculation may not terminate:
+        # The critical part is that for the return value (r,p,q), abs(p) > abs(q)
+        @test NormalForms.gcd_kb(2,2) === (2,1,0)
         @test isunimodular(Float64[1 1; 0 1]) === true
         @test isunimodular([1/2 0; 0 2]) == false
     end
@@ -86,9 +87,5 @@ end
 [ 9  7 -7  7 -3  7
  -1  5  0  7 -4 -1
   2  2  9  7 -5  3
- -2  6  3 -9 -3  5] (hnfc fails - also in HermiteNormalForm.jl)
-
-[ -3  -2  -4   0
- -2   3   2  -2
- -1   2   2  -2 ] (unimodularity failure)
+ -2  6  3 -9 -3  5] (unimodularity failure in hnfc - also in HermiteNormalForm.jl)
 =#
