@@ -1,16 +1,16 @@
 """
     NormalForms.eye(T::Type, sz)
 
-Generates an identity matrix of size `sz`.
+Generates an identity matrix of size `sz` with elements of type `T`.
 """
 eye(T::Type, sz) = Matrix{T}(LinearAlgebra.I(sz))
 
 """
-    NormalForms.eye(M::AbstractMatrix{T}, dim)
+    NormalForms.eye(M::AbstractMatrix, dim)
 
-Generates an identity matrix of the same size as dimension `dim` of `M`.
+Generates an identity matrix of the same dimension as dimension `dim` of `M`.
 """
-eye(M::AbstractMatrix{T}, dim) where T = eye(T, size(M, dim))
+eye(M::AbstractMatrix, dim) = typeof(M)(LinearAlgebra.I(size(M, dim)))
 
 """
     NormalForms.detb!(M::AbstractMatrix)
@@ -134,11 +134,8 @@ are tracked in the matrix `U`, which will only undergo unimodular transforms.
     # This can safely be skipped if k is the last element
     k < last(axes(A,2)) && for j in axes(A,2)[k+1:end]
         # Take the GCD with the Kannen-Bachem modificaion
-        @info "j = $j"
         (d, p, q) = gcd_kb(A[ki, k], A[ki, j])
-        p < q && @warn "Warning: p < q"
         Akkd, Akjd = div(A[ki, k], d), div(A[ki, j], d)
-        @info "\nd = $d, p = $p, q = $q\nAkkd = $Akkd, Akjd = $Akjd"
         for i in axes(A,1)
             # Make copies for later reference (otherwise the algorithm breaks)
             Aik, Aij = A[i,k], A[i,j]
@@ -182,10 +179,8 @@ are tracked in the matrix `U`, which will only undergo unimodular transforms.
 )
     # This can safely be skipped if k is the last element
     k < last(axes(A,1)) && for j in axes(A,1)[k+1:end]
-        @info "j = $j"
         (d, p, q) = gcd_kb(A[k, ki], A[j, ki])
         Akkd, Ajkd = div(A[k, ki], d), div(A[j, ki], d)
-        @info "\nd = $d, p = $p, q = $q\nAkkd = $Akkd, Ajkd = $Ajkd"
         for i in axes(A,2)
             Aki, Aji = A[k,i], A[j,i]
             A[k,i] =  Aki * p + Aji * q
@@ -203,8 +198,7 @@ are tracked in the matrix `U`, which will only undergo unimodular transforms.
         Uk, Uj = U[k,:], U[j,:]
         @views U[k,:] =  Uk * p + Uj * q
         @views U[j,:] = -Uk * Ajkd + Uj * Akkd
-        (It was also faster than using a matrix multiplication)
-        @assert isunimodular(U) =#
+        (It was also faster than using a matrix multiplication) =#
     end
 end
 
