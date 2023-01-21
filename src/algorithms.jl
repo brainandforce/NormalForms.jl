@@ -14,10 +14,12 @@ eye(M::AbstractMatrix, dim) = typeof(M)(collect(UniformScaling(one(eltype(M)))(s
 # Collect is needed for Julia 1.6 because Adjoint(::Diagonal) is undefined
 
 """
-    NormalForms.detb!(M::AbstractMatrix)
+    NormalForms.detb!(M::AbstractMatrix{T<:Number}) -> T
 
 Calculates the determinant of a matrix using the [Bareiss 
-algorithm](https://en.wikipedia.org/wiki/Bareiss_algorithm) using in-place operations.
+algorithm](https://en.wikipedia.org/wiki/Bareiss_algorithm) using in-place operations. This
+algorithm returns exact integer determinants for integer matrices, which is useful when checking
+whether a matrix is unimodular.
 
 This is a verbatim reimplementation of `LinearAlgebra.det_bareiss()` used to ensure compatibility
 with Julia 1.6, which does not have this function.
