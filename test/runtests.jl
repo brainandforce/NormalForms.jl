@@ -4,15 +4,19 @@ using NormalForms
 using LinearAlgebra
 using StaticArrays
 
+import NormalForms: eye, gcd_kb
+
 Aqua.test_all(NormalForms; project_toml_formatting=false)
 
 @testset "NormalForms.jl" verbose=true begin
     @testset "Algorithms" begin
         # If this fails, Smith normal form calculation may not terminate:
         # The critical part is that for the return value (r,p,q), abs(p) > abs(q)
-        @test NormalForms.gcd_kb(2,2) === (2,1,0)
+        @test gcd_kb(2,2) === (2,1,0)
         @test isunimodular(Float64[1 1; 0 1]) === true
         @test isunimodular([1/2 0; 0 2]) == false
+        @test eye(transpose(zeros(Bool, 3,4)), 2) == transpose(collect(LinearAlgebra.I(3)))
+        @test eye(adjoint(zeros(Bool, 3,4)), 2) == adjoint(collect(LinearAlgebra.I(3)))
     end
     @testset "Factorization assertions" begin
         # Diagonal checks for Smith normal form
