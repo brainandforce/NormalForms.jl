@@ -75,14 +75,6 @@ function snf_ma!(A::AbstractMatrix{<:Integer})
     # Create the left and right unimodular matrices
     U = eye(A,1)
     V = eye(A,2)
-    # Convert to a transpose or adjoint if needed
-    if A isa Adjoint
-        U = U'
-        V = V'
-    elseif A isa Transpose
-        U = transpose(U)
-        V = transpose(V)
-    end
     # Loop through the smallest dimension of A
     for k in minimum(axes(A))
         pivot = find_pivot(A,k)

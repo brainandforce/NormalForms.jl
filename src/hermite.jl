@@ -120,12 +120,6 @@ function hnf_ma!(
 )
     # Create the unimodular matrix as an identity matrix
     U = eye(A,2)
-    # Convert to a transpose 
-    if A isa Adjoint
-        U = U'
-    elseif A isa Transpose
-        U = transpose(U)
-    end
     # Loop through each row of A
     @inbounds for k in axes(A,1)
         pivot = find_pivot(A,k)
