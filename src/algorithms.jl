@@ -11,7 +11,7 @@ eye(T::Type, sz) = Matrix{T}(LinearAlgebra.I(sz))
 Generates an identity matrix of the same dimension as dimension `dim` of `M`.
 """
 eye(M::AbstractMatrix, dim) = typeof(M)(collect(UniformScaling(one(eltype(M)))(size(M, dim))))
-eye(M::Diagonal, dim) = Diagonal(ones(eltype(M), size(M,2)))
+eye(M::Diagonal, dim = 1) = Diagonal(ones(eltype(M), size(M,dim)))
 # Collect is needed for Julia 1.6 because Adjoint(::Diagonal) is undefined
 
 """
