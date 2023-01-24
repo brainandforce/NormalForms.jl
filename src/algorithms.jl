@@ -99,7 +99,7 @@ end
 Finds a suitable pivot element for the Smith or Hermite normal form algorithms. If none can be
 found, it returns 0.
 """
-@inline function find_pivot(A::AbstractMatrix{<:Integer}, k::Integer)
+@inline function find_pivot(A::AbstractMatrix, k::Integer)
     # Default to k as the pivot
     pivot = k
     # If k has a diagonal and it's zero, change the pivot
@@ -130,8 +130,8 @@ Zeroes the elements along the row `A[k,k+1:end]` (all elements right of `A[k,k]`
 are tracked in the matrix `U`, which will only undergo unimodular transforms.
 """
 @inline function zero_row!(
-    A::AbstractMatrix{<:Integer},
-    U::AbstractMatrix{<:Integer},
+    A::AbstractMatrix,
+    U::AbstractMatrix,
     k::Integer,
     ki::Integer = k
 )
@@ -176,8 +176,8 @@ Zeroes the elements along the column `A[k+1:end,k]` (all elements below `A[k,k]`
 are tracked in the matrix `U`, which will only undergo unimodular transforms.
 """
 @inline function zero_col!(
-    A::AbstractMatrix{<:Integer},
-    U::AbstractMatrix{<:Integer},
+    A::AbstractMatrix,
+    U::AbstractMatrix,
     k::Integer,
     ki::Integer = k
 )
@@ -221,8 +221,8 @@ If the `RoundingMode` is set to `RoundUp` or `NegativeOffDiagonal`, the off-diag
 be negative. If set to `RoundDown` or `PositiveOffDiagonal`, they will be positive.
 """
 @inline function reduce_cols_off_diagonal!(
-    A::AbstractMatrix{<:Integer},
-    U::AbstractMatrix{<:Integer},
+    A::AbstractMatrix,
+    U::AbstractMatrix,
     k::Integer,
     ki::Integer = k,
     R::RoundingMode = NegativeOffDiagonal
