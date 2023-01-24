@@ -7,6 +7,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [0.1.4] - 2023-01-24
 
+### Added
+  - All Hermite and Smith normal form calculating functions now accept non-integer inputs, but
+convert the input matrix to an integer matrix before proceeding.
+
 ### Fixed
   - Diagonal matrices now have their own methods for `hnf_ma!()` and `snf_ma!()`, preventing type
 errors and improving efficiency.

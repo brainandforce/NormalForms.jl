@@ -17,6 +17,7 @@ Aqua.test_all(NormalForms; project_toml_formatting=false)
         @test isunimodular([1/2 0; 0 2]) == false
         @test eye(transpose(zeros(Bool, 3,4)), 2) == transpose(collect(LinearAlgebra.I(3)))
         @test eye(adjoint(zeros(Bool, 3,4)), 2) == adjoint(collect(LinearAlgebra.I(3)))
+        @test eye(Diagonal([1,2,3]), 2) == Diagonal([1,1,1])
     end
     @testset "Factorization assertions" begin
         # Diagonal checks for Smith normal form
@@ -47,6 +48,12 @@ Aqua.test_all(NormalForms; project_toml_formatting=false)
         @test M * Fc.U == Fc.H
         @test Fr.U * M == Fr.H
         @test S.U * M * S.V == S.S
+    end
+    @testset "Square matrix with floats" begin
+        M = Float64[-2 1 1; 2 -1 1; 2 1 -1]
+        @test eltype(hnfr(M)) <: Integer
+        @test eltype(hnfc(M)) <: Integer
+        @test eltype(snf(M)) <: Integer
     end
     @testset "Non-square matrix" begin
         M = [1 2 -2 -1 -6 -4; -3 -3 -8 -5 -1 2; 4 9 7 7 -1 0; -9 2 2 9 -3 -6]
