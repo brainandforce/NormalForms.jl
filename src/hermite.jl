@@ -142,9 +142,11 @@ function hnf_ma!(
     return (A, U, 0)
 end
 
-function hnf_ma!(A::Diagonal{<:Integer})
+function hnf_ma!(A::Diagonal{<:Integer}, ::RoundingMode)
     return (A, UniformScaling(one(eltype(A)))(size(A,1)), 0)
 end
+
+hnf_ma!(A::AbstractMatrix, R::RoundingMode) = hnf_ma!(Int.(A), R)
 
 """
     hnfc!(M::AbstractMatrix{<:Integer}, R::RoundingMode = NegativeOffDiagonal)
@@ -153,7 +155,7 @@ end
 Calculates the column Hermite normal form of the integer matrix `M` in-place, returning a
 `ColumnHermite` describing the elements of the factorization.
 """
-function hnfc!(M::AbstractMatrix{<:Integer}, R::RoundingMode = NegativeOffDiagonal)
+function hnfc!(M::AbstractMatrix, R::RoundingMode = NegativeOffDiagonal)
     return ColumnHermite(hnf_ma!(M, R)...)
 end
 
@@ -165,7 +167,7 @@ Calculates the column Hermite normal form of the integer matrix `M` in-place, re
 `ColumnHermite` describing the elements of the factorization. Unlike `hnfc!()`, this function
 creates a copy of the input matrix rather than modifying it in-place.
 """
-hnfc(M::AbstractMatrix{<:Integer}) = hnfc!(deepcopy(M))
+hnfc(M::AbstractMatrix) = hnfc!(deepcopy(M))
 
 """
     hnfr!(M::AbstractMatrix{<:Integer}, R::RoundingMode = NegativeOffDiagonal)
@@ -174,7 +176,7 @@ hnfc(M::AbstractMatrix{<:Integer}) = hnfc!(deepcopy(M))
 Calculates the row Hermite normal form of the integer matrix `M` in-place, returning a `RowHermite`
 describing the elements of the factorization.
 """
-function hnfr!(M::AbstractMatrix{<:Integer}, R::RoundingMode = NegativeOffDiagonal)
+function hnfr!(M::AbstractMatrix, R::RoundingMode = NegativeOffDiagonal)
     # Calculate the column HNF of the transpose
     (H, U, info) = hnf_ma!(M', R)
     # Transpose back to get M again
@@ -189,4 +191,4 @@ Calculates the row Hermite normal form of the integer matrix `M` in-place, retur
 describing the elements of the factorization. Unlike `hnfr!()`, this function creates a copy of the
 input matrix rather than modifying it in-place.
 """
-hnfr(M::AbstractMatrix{<:Integer}) = hnfr!(deepcopy(M))
+hnfr(M::AbstractMatrix) = hnfr!(deepcopy(M))

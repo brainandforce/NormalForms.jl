@@ -106,16 +106,18 @@ function snf_ma!(A::Diagonal{<:Integer})
     return (A, id, id, 0)
 end
 
+snf_ma!(A::AbstractMatrix) = snf_ma!(Int.(A))
+
 """
     snf(M::AbstractMatrix{<:Integer}) -> Smith{eltype(M),M}
 
 Calculates the Smith normal form of an integer matrix in-place.
 """
-snf!(M::AbstractMatrix{<:Integer}) = Smith(snf_ma!(M)...)
+snf!(M::AbstractMatrix) = Smith(snf_ma!(M)...)
 
 """
     snf(M::AbstractMatrix{<:Integer}) -> Smith{eltype(M),M}
 
 Calculates the Smith normal form of an integer matrix, returning a copy of the original matrix.
 """
-snf(M::AbstractMatrix{<:Integer}) = snf!(deepcopy(M))
+snf(M::AbstractMatrix) = snf!(deepcopy(M))
