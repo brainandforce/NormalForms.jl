@@ -142,6 +142,10 @@ function hnf_ma!(
     return (A, U, 0)
 end
 
+function hnf_ma!(A::Diagonal{<:Integer})
+    return (A, UniformScaling(one(eltype(A)))(size(A,1)), 0)
+end
+
 """
     hnfc!(M::AbstractMatrix{<:Integer}, R::RoundingMode = NegativeOffDiagonal)
         -> ColumnHermite{eltype(M),typeof(M)}

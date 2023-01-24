@@ -101,6 +101,11 @@ function snf_ma!(A::AbstractMatrix{<:Integer})
     return (A, U, V, 0)
 end
 
+function snf_ma!(A::Diagonal{<:Integer})
+    id = UniformScaling(one(eltype(A)))(size(A,1))
+    return (A, id, id, 0)
+end
+
 """
     snf(M::AbstractMatrix{<:Integer}) -> Smith{eltype(M),M}
 
