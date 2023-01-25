@@ -94,9 +94,16 @@ Aqua.test_all(NormalForms; project_toml_formatting=false)
     end
     @testset "Diagonal matrices" begin
         M = Diagonal([7,12,6])
+        Hr = hnfr(M)
+        Hc = hnfc(M)
         S = snf(M)
-        @test S isa Smith{Int64, Matrix{Int64}}
+        @test S isa Smith{Int, Matrix{Int}}
+        @test Hr isa RowHermite{Int, Diagonal{Int, Vector{Int}}}
+        @test Hc isa ColumnHermite{Int, Diagonal{Int, Vector{Int}}}
         @test diag(S) == [1,6,84]
+        @test Diagonal(S) == Diagonal([1,6,84])
+        @test Diagonal(Hr) == M
+        @test Diagonal(Hc) == M
     end
 end
 
