@@ -14,6 +14,7 @@ makedocs(;
     ),
     pages=[
         "Home" => "index.md",
+        "Package notes and FAQ" => "notes.md",
         "API" => [
             "Public" => "api/public.md",
             "Internal" => "api/internal.md"
