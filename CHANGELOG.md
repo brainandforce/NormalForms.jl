@@ -7,6 +7,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [0.1.5] - 2023-01-25
 
+### Added
+  - Factorizations can now be converted to a `Diagonal` representation by calling `Diagonal()`.
+
 ### Fixed
   - The method `snf_ma!(::Diagonal)` did not perform any operations, which of course skipped over
 the steps that ensure that the diagonal entries meet divisibility requirements. This has been fixed

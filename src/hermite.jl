@@ -14,6 +14,7 @@ Base.iterate(F::AbstractHermite, ::Nothing) = nothing
 
 LinearAlgebra.issuccess(H::AbstractHermite) = iszero(H.info)
 LinearAlgebra.diag(H::AbstractHermite) = diag(H.H)
+LinearAlgebra.Diagonal(F::AbstractHermite) = Diagonal(F.H)
 
 """
     RowHermite{T<:Integer,M<:AbstractMatrix{T}}

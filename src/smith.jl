@@ -41,6 +41,7 @@ Base.iterate(F::Smith, ::Nothing) = nothing
 
 LinearAlgebra.issuccess(F::Smith) = iszero(F.info)
 LinearAlgebra.diag(F::Smith) = diag(F.S)
+LinearAlgebra.Diagonal(F::Smith) = Diagonal(F.S)
 
 function Base.summary(io::IO, F::Smith)
     print(io, join(size(F.S), '×'), ' ', typeof(F), ":")
