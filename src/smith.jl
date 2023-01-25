@@ -101,10 +101,8 @@ function snf_ma!(A::AbstractMatrix{<:Integer})
     return (A, U, V, 0)
 end
 
-function snf_ma!(A::Diagonal{<:Integer})
-    id = UniformScaling(one(eltype(A)))(size(A,1))
-    return (A, id, id, 0)
-end
+# TODO: see if there are efficiency gains by writing a specific method for Diagonal
+snf_ma!(A::Diagonal{<:Integer}) = snf_ma!(collect(A))
 
 snf_ma!(A::AbstractMatrix) = snf_ma!(Int.(A))
 
