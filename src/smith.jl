@@ -43,6 +43,9 @@ LinearAlgebra.issuccess(F::Smith) = iszero(F.info)
 LinearAlgebra.diag(F::Smith) = diag(F.S)
 LinearAlgebra.Diagonal(F::Smith) = Diagonal(F.S)
 
+Base.adjoint(F::Smith) = Smith(F.S', F.V', F.U')
+Base.transpose(F::Smith) = Smith(transpose(F.S), transpose(F.V), transpose(F.U))
+
 function Base.summary(io::IO, F::Smith)
     print(io, join(size(F.S), '×'), ' ', typeof(F), ":")
 end

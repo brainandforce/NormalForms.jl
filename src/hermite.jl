@@ -70,6 +70,11 @@ struct ColumnHermite{T,M} <: AbstractHermite{T,M}
     end
 end
 
+Base.adjoint(F::RowHermite) = ColumnHermite(F.H', F.U')
+Base.adjoint(F::ColumnHermite) = RowHermite(F.H', F.U')
+LinearAlgebra.transpose(F::RowHermite) = ColumnHermite(transpose(F.H), transpose(F.U))
+LinearAlgebra.transpose(F::ColumnHermite) = RowHermite(transpose(F.H), transpose(F.U))
+
 function Base.summary(io::IO, H::AbstractHermite)
     print(io, join(size(H.H), '×'), ' ', typeof(H), ":")
 end

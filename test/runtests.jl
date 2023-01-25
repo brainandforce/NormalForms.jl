@@ -76,21 +76,43 @@ Aqua.test_all(NormalForms; project_toml_formatting=false)
     end
     @testset "Transposes" begin
         M = [-2 1 1; 2 -1 1; 2 1 -1]
-        Fr = hnfr(transpose(M))
-        Fc = hnfc(transpose(M))
-        S = snf(transpose(M))
-        @test transpose(M) * Fc.U == Fc.H
-        @test Fr.U * transpose(M) == Fr.H
-        @test S.U * transpose(M) * S.V == S.S
+        Hrt = hnfr(transpose(M))
+        Hct = hnfc(transpose(M))
+        St = snf(transpose(M))
+        # Hermite normal form tests
+        # Transpose of the HNF of a transpose should give the opposite form (row vs. column)
+        @test transpose(M) * Hct.U == Hct.H
+        @test Hrt.U * transpose(M) == Hrt.H
+        @test transpose(Hrt) == hnfc(M)
+        @test transpose(Hct) == hnfr(M)
+        # Smith normal form tests
+        #= NOTE:
+            The Smith normal form factorization doesn't return the exact same results when
+            performed with a transpose vs. when it's transposed. This is probably due to the
+            rounding modes of Euclidean divisions being irrelevant. Therefore, we don't always
+            expect transpose(snf(transpose(M))) == snf(M).
+        =#
+        @test diag(snf(transpose(M)).S) == diag(snf(M).S)
+        @test St.S == St.U * transpose(M) * St.V
+        @test St.S == transpose(snf(M).V) * transpose(M) * transpose(snf(M).U)
+        @test snf(M).S == transpose(St.V) * M * transpose(St.U)
     end
     @testset "Adjoints" begin
         M = [-2 1 1; 2 -1 1; 2 1 -1]
-        Fr = hnfr(M')
-        Fc = hnfc(M')
-        S = snf(M')
-        @test M' * Fc.U == Fc.H
-        @test Fr.U * M' == Fr.H
-        @test S.U * M' * S.V == S.S
+        Hra = hnfr(M')
+        Hca = hnfc(M')
+        Sa = snf(M')
+        # Hermite normal form tests
+        @test M' * Hca.U == Hca.H
+        @test Hra.U * M' == Hra.H
+        @test Hra' == hnfc(M)
+        @test Hca' == hnfr(M)
+        # Smith normal form tests
+        # As above, snf(M')' != snf(M) in general
+        @test diag(snf(M').S) == diag(snf(M).S)
+        @test Sa.S == Sa.U * M' * Sa.V
+        @test Sa.S == snf(M).V' * M' * snf(M).U'
+        @test snf(M).S == Sa.V' * M * Sa.U'
     end
     @testset "Diagonal matrices" begin
         M = Diagonal([7,12,6])
