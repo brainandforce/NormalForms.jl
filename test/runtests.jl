@@ -92,6 +92,12 @@ Aqua.test_all(NormalForms; project_toml_formatting=false)
         @test Fr.U * M' == Fr.H
         @test S.U * M' * S.V == S.S
     end
+    @testset "Diagonal matrices" begin
+        M = Diagonal([7,12,6])
+        S = snf(M)
+        @test S isa Smith{Int64, Matrix{Int64}}
+        @test diag(S) == [1,6,84]
+    end
 end
 
 #= Known problem matrices:
