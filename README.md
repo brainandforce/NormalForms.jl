@@ -45,11 +45,9 @@ Pkg.add("https://github.com/brainandforce/NormalForms.jl", rev="branchname")
 
 # To-do list
 
-The main issues that need to be addressed are writing up documentation for the package (including 
-both the public API and the internals) and covering more code with testing.
-
-Of course, check the Issues tab to see if there's anything that could use help, or if you find an
-issue that needs addressing.
+This package is not in a finished state. The primary block to this is that some matrices cannot be
+placed in Hermite or Smith normal form because the unimodular factors fail to be unimodular. As of
+now, it's unclear what causes this to happen, but the solution may come in more extensive testing.
 
 # See also
 
