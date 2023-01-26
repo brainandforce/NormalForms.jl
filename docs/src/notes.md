@@ -7,8 +7,8 @@ rationalized or explained here.
 ## Return type of `Transpose` and `Adjoint` matrices
 
 When a Smith or Hermite normal form calculation is performed on a `Transpose` or `Adjoint`, the
-unimodular factors are of the same type. The factorization types from Hermite and Smith normal form
-calculations may be transposed in the case of
+unimodular factors are of the same type. The `transpose()` and `adjoint()` functions can be applied
+to a factorization to obtain a transposed representation.
 
 ## Inequivalence of transposition order with Smith normal form calculations
 
