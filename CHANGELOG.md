@@ -9,6 +9,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
   - Factorizations can now be converted to a `Diagonal` representation by calling `Diagonal()`.
+  - Factorizations may now be transposed, or converted to an adjoint representation.
 
 ### Fixed
   - The method `snf_ma!(::Diagonal)` did not perform any operations, which of course skipped over
