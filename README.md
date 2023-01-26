@@ -23,7 +23,7 @@ commit).
 
 NormalForms.jl is now in the Julia package registry! To install, just use the package manager:
 ```
-(@v1.8) pkg> add NormalForms
+(@v1.6+) pkg> add NormalForms
 ```
 Alternatively: 
 ```
@@ -34,7 +34,7 @@ Pkg.add("NormalForms")
 You can also add the repo URL, with an optional specifier for the branch you want to track. By
 default, it tracks `main`. `release` matches the package state in the General repo.
 ```
-(@v1.8) pkg> add https://github.com/brainandforce/NormalForms.jl#branchname
+(@v1.6+) pkg> add https://github.com/brainandforce/NormalForms.jl#branchname
 ```
 Alternatively: 
 ```
