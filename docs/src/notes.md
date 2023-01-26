@@ -4,6 +4,27 @@ Some of the content here may seem obvious, but these are pitfalls that were disc
 package development that led to some design choices and other unusual findings that are
 rationalized or explained here.
 
+## Return type of `Transpose` and `Adjoint` matrices
+
+When a Smith or Hermite normal form calculation is performed on a `Transpose` or `Adjoint`, the
+unimodular factors are of the same type. The factorization types from Hermite and Smith normal form
+calculations may be transposed in the case of
+
+## Inequivalence of transposition order with Smith normal form calculations
+
+In general, `hnfc(M') == hnfr(M)'`, and `hnfr(M') == hnfc(M)'`. It is also true that 
+`snf(M).S == snf(M')'.S == snf(M)'.S`. However, `snf(M').U` is not guaranteed to be equal to
+`snf(M)'.U`, and the same goes for `snf(M').V` and `snf(M)'.V`! This is because the choice of
+unimodular factors is not unique with respect to the rounding mode of the Euclidean division steps.
+
+What is guaranteed is that `snf(M).S == snf(M').S == snf(M)'.S`,
+`snf(M)'.S == snf(M').S == snf(M').V * M * snf(M').U == snf(M)'.V * M' * snf(M)'.U`. In the future,
+we may modify the algorithm to guarantee `snf(M') == snf(M)'`.
+
+!!! note 
+    We've generally used the adjoint (prime) operator, but everything stated for adjoints here
+    also holds for transposes.
+
 ## Return type of `Diagonal` matrices
 
 You might notice that if you perform a Smith normal form calculation on a `Diagonal` matrix, the
