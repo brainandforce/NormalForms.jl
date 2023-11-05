@@ -119,6 +119,16 @@ found, it returns 0.
 end
 
 """
+    NormalForms.is_row_zero_after(A::AbstractMatrix, k::Integer) -> Bool
+    NormalForms.is_column_zero_after(A::AbstractMatrix, k::Integer) -> Bool
+
+Checks if all entries of row or column `k` superseding `A[k,k]` are zero.
+"""
+is_row_zero_after(A::AbstractMatrix, k::Integer) = all(iszero(A[k,k+1:end]))
+is_col_zero_after(A::AbstractMatrix, k::Integer) = all(iszero(A[k+1:end,k]))
+@doc (@doc is_row_zero_after) is_col_zero_after
+
+"""
     NormalForms.zero_row!(
         A::AbstractMatrix{<:Integer},
         U::AbstractMatrix{<:Integer},
