@@ -134,9 +134,9 @@ Aqua.test_all(NormalForms; project_toml_formatting=false)
         @test M == Int.(S.U \ S.S / S.V)
         for k in 1:3
             N = copy(M)
-            NormalForms.zero_row_and_col!(N, NormalForms.eye(N,1), NormalForms.eye(n,2), 1)
-            @test NormalForms.is_row_zero_after(N, 1)
-            @test NormalForms.is_col_zero_after(N, 1)
+            NormalForms.zero_row_and_col!(N, NormalForms.eye(N,1), NormalForms.eye(N,2), k)
+            @test NormalForms.is_row_zero_after(N, k)
+            @test NormalForms.is_col_zero_after(N, k)
             @test NormalForms.detb(M) === NormalForms.detb(N)
         end
     end
