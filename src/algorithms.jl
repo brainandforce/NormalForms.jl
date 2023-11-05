@@ -251,6 +251,39 @@ elements will be negative. If set to `RoundDown` or `PositiveOffDiagonal`, they 
 end
 
 """
+    NormalForms.zero_row_and_col!(
+        A::AbstractMatrix,
+        U::AbstractMatrix,
+        V::AbstractMatrix,
+        k::Integer,
+        ki::Integer = k
+    )
+
+Zeros row and column `k` of matrix `A`, tracking the changes in left unimodular matrix `U` and right
+unimodular matrix `V`.
+"""
+function zero_row_and_col!(
+    A::AbstractMatrix,
+    U::AbstractMatrix,
+    V::AbstractMatrix,
+    k::Integer,
+    ki::Integer = k
+)
+    # Try to simply zero the rows and columns
+    zero_row!(A, V, k, ki)
+    @assert is_row_zero_after(A, k)
+    # Reduce the column elements to avoid ruining the row later
+    for n in axes(A, 1)[k+1:end]
+        mul = div(A[n,k], A[k,k], RoundToZero)
+        A[n,:] .-= mul * A[k,:]
+        U[n,:] .-= mul * U[k,:]
+    end
+    zero_col!(A, U, k, ki)
+    @assert is_col_zero_after(A, k)
+    @assert is_row_zero_after(A, k)
+end
+
+"""
     NormalForms.enforce_divisibility!(
         A::AbstractMatrix,
         U::AbstractMatrix,
