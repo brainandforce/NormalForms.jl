@@ -23,8 +23,11 @@ NormalForms.gcd_kb
 NormalForms.detb!
 NormalForms.detb
 NormalForms.find_pivot
+NormalForms.is_row_zero_after
+NormalForms.is_col_zero_after
 NormalForms.zero_row!
 NormalForms.zero_col!
 NormalForms.reduce_cols_off_diagonal!
+NormalForms.zero_row_and_col!
 NormalForms.enforce_divisibility!
 ```
