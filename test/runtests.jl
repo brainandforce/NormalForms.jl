@@ -127,6 +127,19 @@ Aqua.test_all(NormalForms; project_toml_formatting=false)
         @test Diagonal(Hr) == M
         @test Diagonal(Hc) == M
     end
+    @testset "Known problematic matrices" begin
+        M = [2 0 0; 1 4 0; 2 0 8]
+        @test snf(M).S == diagm([1, 8, 8])
+        @test snf(M).U == [ 0  1  0; -1  2  0;  0 -2  1]
+        @test snf(M).V == [ 1 -4  0;  0  1  0;  0  1  1]
+        for k in 1:3
+            N = copy(M)
+            NormalForms.zero_row_and_col!(N, NormalForms.eye(N,1), NormalForms.eye(n,2), 1)
+            @test NormalForms.is_row_zero_after(N, 1)
+            @test NormalForms.is_col_zero_after(N, 1)
+            @test NormalForms.detb(M) === NormalForms.detb(N)
+        end
+    end
 end
 
 #= Known problem matrices:
