@@ -217,7 +217,7 @@ are tracked in the matrix `U`, which will only undergo unimodular transforms.
 end
 
 """
-    NormalForms.reduce_off_diagonal!(
+    NormalForms.reduce_cols_off_diagonal!(
         A::AbstractMatrix{<:Integer},
         U::AbstractMatrix{<:Integer},
         R::RoundingMode
@@ -227,8 +227,8 @@ Performs an off-diagonal reduction of elements in `A` in-place by columns. This 
 diagonal elements are positive by multiplying the columns by -1 if needed. Changes to `A` are
 tracked in the matrix `U`, which will only undergo unimodular transforms.
 
-If the `RoundingMode` is set to `RoundUp` or `NegativeOffDiagonal`, the off-diagonal elements will
-be negative. If set to `RoundDown` or `PositiveOffDiagonal`, they will be positive.
+If the `RoundingMode` is set to `RoundUp` or `NegativeOffDiagonal` (the default), the off-diagonal
+elements will be negative. If set to `RoundDown` or `PositiveOffDiagonal`, they will be positive.
 """
 @inline function reduce_cols_off_diagonal!(
     A::AbstractMatrix,
