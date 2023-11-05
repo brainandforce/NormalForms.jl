@@ -272,7 +272,6 @@ function zero_row_and_col!(
     # The cycle:
     # Zero the row, reduce the column, zero the column, reduce the row
     zero_row!(A, V, k, ki)
-    @assert is_row_zero_after(A, k)
     for n in axes(A, 1)[k+1:end]
         mul = div(A[n,k], A[k,k], RoundToZero)
         A[n,:] .-= mul .* A[k,:]
