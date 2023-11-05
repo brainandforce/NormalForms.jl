@@ -269,16 +269,21 @@ function zero_row_and_col!(
     k::Integer,
     ki::Integer = k
 )
-    # Try to simply zero the rows and columns
+    # The cycle:
+    # Zero the row, reduce the column, zero the column, reduce the row
     zero_row!(A, V, k, ki)
     @assert is_row_zero_after(A, k)
-    # Reduce the column elements to avoid ruining the row later
     for n in axes(A, 1)[k+1:end]
         mul = div(A[n,k], A[k,k], RoundToZero)
         A[n,:] .-= mul * A[k,:]
         U[n,:] .-= mul * U[k,:]
     end
     zero_col!(A, U, k, ki)
+    for n in axes(A, 2)[k+1:end]
+        mul = div(A[k,n], A[k,k], RoundToZero)
+        A[:,n] .-= mul * A[:,k]
+        V[:,n] .-= mul * V[:,k]
+    end
     @assert is_col_zero_after(A, k)
     @assert is_row_zero_after(A, k)
 end
