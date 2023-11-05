@@ -7,6 +7,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.6] - 2023-11-05
+
 ## Added
   - New methods: `NormalForms.is_row_zero_after`, `NormalForms.is_col_zero_after`, 
 `NormalForms.zero_row_and_col!`
@@ -78,6 +80,7 @@ able to become zero off-diagonal.
 Initial release - added to Julia package registry
 
 [Unreleased]: https://github.com/brainandforce/NormalForms.jl
+[0.1.6]: https://github.com/brainandforce/NormalForms.jl/releases/tag/v0.1.6
 [0.1.5]: https://github.com/brainandforce/NormalForms.jl/releases/tag/v0.1.5
 [0.1.4]: https://github.com/brainandforce/NormalForms.jl/releases/tag/v0.1.4
 [0.1.3]: https://github.com/brainandforce/NormalForms.jl/releases/tag/v0.1.3
