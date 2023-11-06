@@ -16,7 +16,7 @@ which are subtypes of `LinearAlgebra.Factorization`. Second, effort has been mad
 comment the code so the algorithms can be easily understood. Third, the code is integrated with
 StaticArrays.jl, and methods are available for `SMatrix`, which cannot be mutated in-place.
 
-This package is written to be compatible with the lastest LTS (Julia 1.6 as of the most recent
+This package is written to be compatible with the latest LTS (Julia 1.6.7 as of the most recent
 commit).
 
 # Installation
