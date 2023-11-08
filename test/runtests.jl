@@ -132,9 +132,13 @@ Aqua.test_all(NormalForms; project_toml_formatting=false)
             [2 0 0; 1 4 0; 2 0 8],
             [1 0 0; 0 6 0; 0 3 4],
         )
-        for M in bad_3d_matrices
+        known_3d_snfs = (
+            [1,  8,  8],
+            [1,  1, 24]
+        )
+        for (M,K) in zip(bad_3d_matrices, known_3d_snfs)
             S = snf(M)
-            @test S.S == diagm([1, 8, 8])
+            @test S.S == diagm(K)
             @test M == Int.(S.U \ S.S / S.V)
             for k in 1:3
                 N = copy(M)
