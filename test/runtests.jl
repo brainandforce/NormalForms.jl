@@ -6,6 +6,21 @@ using StaticArrays
 
 import NormalForms: eye, gcd_kb
 
+# Generate 
+function generate_factors(x::Integer, num_factors::Integer)
+    results = ones(typeof(x), num_factors, 1)
+    inds = 1:1
+    results[1,1] = x
+    new_factors = filter(y -> iszero(div(x, y)), 1:isqrt(x))
+    inds = last(inds) .+ eachindex(new_factors)
+    append!(ones(typeof(x), num_factors, size(new_factors)))
+    results[2,2+eachindex(new_factors)] = new_factors
+
+    for n in 1:num_factors
+
+    end
+end
+
 Aqua.test_all(NormalForms; project_toml_formatting=false)
 
 @testset "NormalForms.jl" verbose=true begin
