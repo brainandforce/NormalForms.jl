@@ -1,3 +1,82 @@
+#---New Hermite normal form type with aliases------------------------------------------------------#
+"""
+    NormalForms.Hermite{T,M<:AbstractMatrix{T},F<:LinearAlgebra.AbstractTriangular{T,M}}
+        <: LinearAlgebra.Factorization{T}
+
+Describes the result of a Hermite normal form calculation, consisting of the matrix in Hermite
+normal form of type `H` and a unimodular matrix of type `M`, both of which share element type `T`.
+
+This type is aliased to provide the user-facing `RowHermite{T,M}` and `ColumnHermite{T,M}` types:
+
+    const RowHermite{T,M} = Hermite{T,M,UpperTriangular{T,M}}
+    const ColumnHermite{T,M} = Hermite{T,M,LowerTriangular{T,M}}
+
+The results the `hnfc!`, `hnfc`, `hnfr!`, and `hnfr` methods are `ColumnHermite` and `RowHermite`
+instances, respectively. However, these constructors should not be called directly to calculate the
+associated Hermite normal forms, as the constructor are only called to store information after a
+factorization algorithm has been run.
+"""
+struct Hermite{T,M<:AbstractMatrix{T},F<:AbstractTriangular{T,M}} <: Factorization{T}
+    H::F
+    U::M
+    info::LinearAlgebra.BlasInt
+    function Hermite(H::F, U::M, info::Integer = 0) where {F<:AbstractTriangular,M<:AbstractMatrix}
+        @assert istriu(H) "H is not upper triangular."
+        @assert isunimodular(U) "U is not unimodular."
+        @assert size(H,1) == size(U,1) string(
+            "H and U have incompatible dimensions: ",
+            join(size(H), '×'), " for H and ", join(size(U), '×'), "for U"
+        )
+        T = promote_type(eltype(H), eltype(U))
+        return new{T,M,F}(H, U, info)
+    end
+end
+
+function Base.summary(io::IO, H::Hermite)
+    print(io, join(size(H.H), '×'), ' ', typeof(H), ":")
+end
+
+function Base.show(io::IO, mime::MIME"text/plain", F::Hermite)
+    if issuccess(F)
+        summary(io, F)
+        println(io, "\nHermite normal form:")
+        Base.show(io, mime, F.H)
+        println(io, "\nUnimodular factor:")
+        Base.show(io, mime, F.U)
+    else
+        print(io, "Failed factorization of type $(typeof(F))")
+    end
+end
+
+# Component destructuring
+Base.iterate(F::Hermite) = (F.H, Val{:U}())
+Base.iterate(F::Hermite, ::Val{:H}) = iterate(F)
+Base.iterate(F::Hermite, ::Val{:U}) = (F.U, nothing)
+Base.iterate(F::Hermite, ::Nothing) = nothing
+
+LinearAlgebra.issuccess(H::Hermite) = iszero(H.info)
+LinearAlgebra.diag(H::Hermite) = diag(H.H)
+LinearAlgebra.Diagonal(F::Hermite) = Diagonal(F.H)
+
+Base.adjoint(F::Hermite) = Hermite(F.H', F.U', F.info)
+LinearAlgebra.transpose(F::Hermite) = Hermite(transpose(F.H), tranpose(F.U), F.info)
+
+#= Code not to be implemented yet
+const RowHermite{T,M} = Hermite{T,M,UpperTriangular{T,M}}
+const ColumnHermite{T,M} = Hermite{T,M,LowerTriangular{T,M}}
+
+function RowHermite(H::AbstractMatrix, U::AbstractMatrix, info::Integer = 0)
+    istriu(H) || error("HNF matrix is not upper triangular.")
+    return Hermite(UpperTriangular(H), U, info)
+end
+
+function ColumnHermite(H::AbstractMatrix, U::AbstractMatrix, info::Integer = 0)
+    istril(H) || error("HNF matrix is not lower triangular.")
+    return Hermite(LowerTriangular(H), U, info)
+end
+=#
+
+#---Back to your regularly scheduled programming---------------------------------------------------#
 """
     AbstractHermite{T<:Integer,M<:AbstractMatrix{T}} <: Factorization{T}
 
