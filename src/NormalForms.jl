@@ -2,7 +2,9 @@ module NormalForms
 
 using LinearAlgebra
 using Requires
+
 import Base: promote_typeof, swaprows!, swapcols!
+import LinearAlgebra: AbstractTriangular
 
 include("algorithms.jl")
 export isunimodular
