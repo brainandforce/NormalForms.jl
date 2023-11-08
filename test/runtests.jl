@@ -128,16 +128,21 @@ Aqua.test_all(NormalForms; project_toml_formatting=false)
         @test Diagonal(Hc) == M
     end
     @testset "Known problematic matrices" begin
-        M = [2 0 0; 1 4 0; 2 0 8]
-        S = snf(M)
-        @test S.S == diagm([1, 8, 8])
-        @test M == Int.(S.U \ S.S / S.V)
-        for k in 1:3
-            N = copy(M)
-            NormalForms.zero_row_and_col!(N, NormalForms.eye(N,1), NormalForms.eye(N,2), k)
-            @test NormalForms.is_row_zero_after(N, k)
-            @test NormalForms.is_col_zero_after(N, k)
-            @test NormalForms.detb(M) === NormalForms.detb(N)
+        bad_3d_matrices = (
+            [2 0 0; 1 4 0; 2 0 8],
+            [1 0 0; 0 6 0; 0 3 4],
+        )
+        for M in bad_3d_matrices
+            S = snf(M)
+            @test S.S == diagm([1, 8, 8])
+            @test M == Int.(S.U \ S.S / S.V)
+            for k in 1:3
+                N = copy(M)
+                NormalForms.zero_row_and_col!(N, NormalForms.eye(N,1), NormalForms.eye(N,2), k)
+                @test NormalForms.is_row_zero_after(N, k)
+                @test NormalForms.is_col_zero_after(N, k)
+                @test NormalForms.detb(M) === NormalForms.detb(N)
+            end
         end
     end
 end
