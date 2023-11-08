@@ -7,6 +7,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.7] - 2023-11-08
+
 ## Fixed
   - Issue #13 was not fixed by v0.1.6; it should be fixed now.
 
@@ -83,6 +85,7 @@ able to become zero off-diagonal.
 Initial release - added to Julia package registry
 
 [Unreleased]: https://github.com/brainandforce/NormalForms.jl
+[0.1.7]: https://github.com/brainandforce/NormalForms.jl/releases/tag/v0.1.7
 [0.1.6]: https://github.com/brainandforce/NormalForms.jl/releases/tag/v0.1.6
 [0.1.5]: https://github.com/brainandforce/NormalForms.jl/releases/tag/v0.1.5
 [0.1.4]: https://github.com/brainandforce/NormalForms.jl/releases/tag/v0.1.4
