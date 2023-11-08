@@ -3,7 +3,7 @@
 
 Supertype for the result of Hermite normal form calculations.
 """
-abstract type AbstractHermite{T<:Integer,M<:AbstractMatrix{T}} <: Factorization{T}
+abstract type AbstractHermite{T<:Number,M<:AbstractMatrix{T}} <: Factorization{T}
 end
 
 # Component destructuring
@@ -17,7 +17,7 @@ LinearAlgebra.diag(H::AbstractHermite) = diag(H.H)
 LinearAlgebra.Diagonal(F::AbstractHermite) = Diagonal(F.H)
 
 """
-    RowHermite{T<:Integer,M<:AbstractMatrix{T}}
+    RowHermite{T<:Numbers,M<:AbstractMatrix{T}}
 
 Describes the result of a decomposition of an integer matrix `A` into its row-style Hermite normal
 form `H`, which is upper triangular, and a unimodular matrix `U`, such that `H == U*A`, or
@@ -28,8 +28,8 @@ struct RowHermite{T,M} <: AbstractHermite{T,M}
     U::M
     info::LinearAlgebra.BlasInt
     function RowHermite(
-        H::AbstractMatrix{<:Integer},
-        U::AbstractMatrix{<:Integer},
+        H::AbstractMatrix{<:Number},
+        U::AbstractMatrix{<:Number},
         info::Integer = 0
     )
         @assert istriu(H) "H is not upper triangular."
@@ -44,7 +44,7 @@ struct RowHermite{T,M} <: AbstractHermite{T,M}
 end
 
 """
-    ColumnHermite{T<:Integer,M<:AbstractMatrix{T}}
+    ColumnHermite{T<:Number,M<:AbstractMatrix{T}}
 
 Describes the result of a decomposition of an integer matrix `A` into its row-style Hermite normal
 form `H`, which is lower triangular, and a unimodular matrix `U`, such that `H == A*U`, or
@@ -55,8 +55,8 @@ struct ColumnHermite{T,M} <: AbstractHermite{T,M}
     U::M
     info::LinearAlgebra.BlasInt
     function ColumnHermite(
-        H::AbstractMatrix{<:Integer},
-        U::AbstractMatrix{<:Integer},
+        H::AbstractMatrix{<:Number},
+        U::AbstractMatrix{<:Number},
         info::Integer = 0
     )
         @assert istril(H) "H is not lower triangular."

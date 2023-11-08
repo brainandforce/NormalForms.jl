@@ -5,15 +5,15 @@ Describes the result of the decomposition of an integer matrix `A` into its Smit
 which is diagonal, and unimodular matrices `U` and `V` such that `S == U*A*V`, or equivalently,
 `A == U\\S/V`.
 """
-struct Smith{T<:Integer,M<:AbstractMatrix{T}} <: Factorization{T}
+struct Smith{T<:Number,M<:AbstractMatrix{T}} <: Factorization{T}
     S::M
     U::M
     V::M
     info::LinearAlgebra.BlasInt
     function Smith(
-        S::AbstractMatrix{<:Integer},
-        U::AbstractMatrix{<:Integer},
-        V::AbstractMatrix{<:Integer},
+        S::AbstractMatrix{<:Number},
+        U::AbstractMatrix{<:Number},
+        V::AbstractMatrix{<:Number},
         info::Integer = 0
     )
         @assert isdiag(S) "S is not diagonal."
