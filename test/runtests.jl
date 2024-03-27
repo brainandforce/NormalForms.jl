@@ -6,7 +6,7 @@ using StaticArrays
 
 import NormalForms: eye, gcd_kb
 
-Aqua.test_all(NormalForms; project_toml_formatting=false)
+Aqua.test_all(NormalForms)
 
 @testset "NormalForms.jl" verbose=true begin
     @testset "Algorithms" begin
