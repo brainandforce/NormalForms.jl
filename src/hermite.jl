@@ -103,12 +103,12 @@ const PositiveOffDiagonal = RoundDown
     NegativeOffDiagonal
 
 Alias for `RoundUp`. In `NormalForms.reduce_cols_off_diagonal!()`, this makes all off-diagonal
-elements the smallest positive value possible.
+elements the smallest negative value possible.
 """
 const NegativeOffDiagonal = RoundUp
 
 """
-    NormalForms._hnf_ma!(
+    NormalForms.hnf_ma!(
         A::AbstractMatrix{<:Integer},
         R::RoundingMode = NegativeOffDiagonal
     ) -> Tuple{typeof(A), typeof(A), LinearAlgebra.BlasInt}
@@ -120,10 +120,7 @@ and the factorization info (zero if success - matching LinearAlgebra factorizati
 The original implementation of `HermiteNormalForm._hnf_like!()` was written by Yingbo Ma, and may
 be found here: https://github.com/YingboMa/HermiteNormalForm.jl/
 """
-function hnf_ma!(
-    A::AbstractMatrix{<:Integer},
-    R::RoundingMode = NegativeOffDiagonal
-)
+function hnf_ma!(A::AbstractMatrix{<:Integer}, R::RoundingMode = NegativeOffDiagonal)
     # Create the unimodular matrix as an identity matrix
     U = eye(A,2)
     # Loop through each row of A
