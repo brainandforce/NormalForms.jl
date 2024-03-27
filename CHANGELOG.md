@@ -7,6 +7,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.8] - 2024-03-27
+
+## Fixed
+  - Missing `[compat]` bounds in Project.toml
+  - Removed an unsupported flag in the Aqua test suite invocation
+
 ## [0.1.7] - 2023-11-08
 
 ## Fixed
@@ -85,6 +91,7 @@ able to become zero off-diagonal.
 Initial release - added to Julia package registry
 
 [Unreleased]: https://github.com/brainandforce/NormalForms.jl
+[0.1.8]: https://github.com/brainandforce/NormalForms.jl/releases/tag/v0.1.8
 [0.1.7]: https://github.com/brainandforce/NormalForms.jl/releases/tag/v0.1.7
 [0.1.6]: https://github.com/brainandforce/NormalForms.jl/releases/tag/v0.1.6
 [0.1.5]: https://github.com/brainandforce/NormalForms.jl/releases/tag/v0.1.5
