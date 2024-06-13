@@ -29,7 +29,7 @@ end
 
 function hnfr(M::T, R::RoundingMode = NegativeOffDiagonal) where {D,T<:StaticMatrix{D,D,<:Integer}}
     (H, U, info) = hnf_ma!(MMatrix(M'), R)
-    return ColumnHermite(T(H'), T(U'), info)
+    return RowHermite(T(H'), T(U'), info)
 end
 
 function snf(M::T) where {D,T<:StaticMatrix{D,D,<:Integer}}
