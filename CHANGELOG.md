@@ -7,27 +7,27 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-## Changed
+### Changed
   - For non-square `StaticMatrix{D1,D2,T}` inputs, the return types of the factors are `Matrix{T}`.
 
-## Fixed
+### Fixed
   - Methods allowing interoperability with `StaticMatrix` types were too narrow to support arbitrary
     immutable subtypes of `StaticMatrix`.
 
 ## [0.1.8] - 2024-03-27
 
-## Fixed
+### Fixed
   - Missing `[compat]` bounds in Project.toml
   - Removed an unsupported flag in the Aqua test suite invocation
 
 ## [0.1.7] - 2023-11-08
 
-## Fixed
+### Fixed
   - Issue #13 was not fixed by v0.1.6; it should be fixed now.
 
 ## [0.1.6] - 2023-11-05
 
-## Added
+### Added
   - New methods: `NormalForms.is_row_zero_after`, `NormalForms.is_col_zero_after`, 
 `NormalForms.zero_row_and_col!`
 
