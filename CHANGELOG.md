@@ -7,6 +7,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.9] - 2024-06-13
+
 ### Changed
   - For non-square `StaticMatrix{D1,D2,T}` inputs, the return types of the factors are `Matrix{T}`.
 
@@ -98,6 +100,7 @@ able to become zero off-diagonal.
 Initial release - added to Julia package registry
 
 [Unreleased]: https://github.com/brainandforce/NormalForms.jl
+[0.1.9]: https://github.com/brainandforce/NormalForms.jl/releases/tag/v0.1.9
 [0.1.8]: https://github.com/brainandforce/NormalForms.jl/releases/tag/v0.1.8
 [0.1.7]: https://github.com/brainandforce/NormalForms.jl/releases/tag/v0.1.7
 [0.1.6]: https://github.com/brainandforce/NormalForms.jl/releases/tag/v0.1.6
