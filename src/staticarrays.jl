@@ -22,28 +22,22 @@ detb(M::StaticMatrix) = detb!(convert(MMatrix, M))
 =#
 
 # Square matrix methods
-function hnfc(M::T, R::RoundingMode = NegativeOffDiagonal) where {D,T<:StaticMatrix{D,D,<:Integer}}
+function hnfc(M::T, R::RoundingMode = NegativeOffDiagonal) where {D,T<:StaticMatrix{D,D}}
     (H, U, info) = hnf_ma!(MMatrix(M), R)
     return ColumnHermite(T(H), T(U), info)
 end
 
-function hnfr(M::T, R::RoundingMode = NegativeOffDiagonal) where {D,T<:StaticMatrix{D,D,<:Integer}}
+function hnfr(M::T, R::RoundingMode = NegativeOffDiagonal) where {D,T<:StaticMatrix{D,D}}
     (H, U, info) = hnf_ma!(MMatrix(M'), R)
     return RowHermite(T(H'), T(U'), info)
 end
 
-function snf(M::T) where {D,T<:StaticMatrix{D,D,<:Integer}}
+function snf(M::T) where {D,T<:StaticMatrix{D,D}}
     (S, U, V, info) = snf_ma!(MMatrix(M))
     return Smith(T(S), T(U), T(V), info)
 end
 
 # Non-square matrix methods
-function hnfc(M::StaticMatrix{<:Any,<:Any,<:Integer}, R::RoundingMode = NegativeOffDiagonal)
-    return hnfc!(collect(M), R)
-end
-
-function hnfr(M::StaticMatrix{<:Any,<:Any,<:Integer}, R::RoundingMode = NegativeOffDiagonal)
-    return hnfr!(collect(M), R)
-end
-
-snf(M::StaticMatrix{<:Any,<:Any,<:Integer}) = snf!(collect(M))
+hnfc(M::StaticMatrix, R::RoundingMode = NegativeOffDiagonal) = hnfc!(collect(M), R)
+hnfr(M::StaticMatrix, R::RoundingMode = NegativeOffDiagonal) = hnfr!(collect(M), R)
+snf(M::StaticMatrix) = snf!(collect(M))
