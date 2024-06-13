@@ -7,6 +7,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## Changed
+  - For non-square `StaticMatrix{D1,D2,T}` inputs, the return types of the factors are `Matrix{T}`.
+
+## Fixed
+  - Methods allowing interoperability with `StaticMatrix` types were too narrow to support arbitrary
+    immutable subtypes of `StaticMatrix`.
+
 ## [0.1.8] - 2024-03-27
 
 ## Fixed
