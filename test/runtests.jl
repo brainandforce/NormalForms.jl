@@ -64,12 +64,24 @@ Aqua.test_all(NormalForms)
         @test Fr.U * M == Fr.H
         @test S.U * M * S.V == S.S
     end
-    @testset "SMatrix" begin
+    @testset "Square SMatrix" begin
         M = SMatrix{3,3,Int}([-2 1 1; 2 -1 1; 2 1 -1])
         Fr = hnfr(M)
         Fc = hnfc(M)
         S = snf(M)
         @test isbits(Fr)
+        @test M * Fc.U == Fc.H
+        @test Fr.U * M == Fr.H
+        @test S.U * M * S.V == S.S
+    end
+    @testset "Non-square SMatrix" begin
+        M = SMatrix{2,3,Int}([1 -2 3; -4 5 -6])
+        Fr = hnfr(M)
+        Fc = hnfc(M)
+        S = snf(M)
+        @test hnfr!(collect(M)) == Fr
+        @test hnfc!(collect(M)) == Fc
+        @test snf!(collect(M)) == S
         @test M * Fc.U == Fc.H
         @test Fr.U * M == Fr.H
         @test S.U * M * S.V == S.S
