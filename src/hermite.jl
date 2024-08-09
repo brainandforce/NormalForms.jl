@@ -122,7 +122,7 @@ be found here: https://github.com/YingboMa/HermiteNormalForm.jl/
 """
 function hnf_ma!(A::AbstractMatrix{<:Integer}, R::RoundingMode = NegativeOffDiagonal)
     # Create the unimodular matrix as an identity matrix
-    n=size(A,1)
+    n=size(A,2)
     U = Matrix{BigInt}(I,n,n)
     # Loop through each row of A
     @inbounds for k in axes(A,1)
