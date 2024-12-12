@@ -97,7 +97,7 @@ function snf_ma!(A::AbstractMatrix{<:Integer})
         swaprows!(A,k,ki)
         swaprows!(U,k,ki)
         # Zero off-diagonal elements across the row, then the column
-        zero_row_and_col!(A, U, V, k, ki)
+        zero_row_and_col!(A, U, V, k)
         # Perform some operations to make A[k,k] divisible by A[k-1,k-1]
         enforce_divisibility!(A, U, V, k)
     end
