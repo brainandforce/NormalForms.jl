@@ -85,7 +85,7 @@ zeroing rows and columns.
 function gcd_kb(x::Integer, y::Integer)
     x == y && return (x, 1, 0)
     (r,p,q) = gcdx(x,y)
-    (b,a) = minmax(x,y)
+    (b,a) = minmax(abs(x),abs(y))
     if abs(q) > abs(a)
         p = p + fld(q,a) * b
         q = q - fld(q,a) * a
