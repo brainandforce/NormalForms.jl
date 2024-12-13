@@ -13,6 +13,7 @@ Aqua.test_all(NormalForms)
         # If this fails, Smith normal form calculation may not terminate:
         # The critical part is that for the return value (r,p,q), abs(p) > abs(q)
         @test gcd_kb(2,2) === (2,1,0)
+        @test gcd_kb(-7,2) === (1,-1,-3)
         @test isunimodular(Float64[1 1; 0 1]) === true
         @test isunimodular([1/2 0; 0 2]) == false
         @test eye(transpose(zeros(Bool, 3,4)), 2) == transpose(collect(LinearAlgebra.I(3)))
@@ -55,14 +56,18 @@ Aqua.test_all(NormalForms)
         @test eltype(hnfc(M)) <: Integer
         @test eltype(snf(M)) <: Integer
     end
-    @testset "Non-square matrix" begin
-        M = [1 2 -2 -1 -6 -4; -3 -3 -8 -5 -1 2; 4 9 7 7 -1 0; -9 2 2 9 -3 -6]
-        Fr = hnfr(M)
-        Fc = hnfc(M)
-        S = snf(M)
-        @test M * Fc.U == Fc.H
-        @test Fr.U * M == Fr.H
-        @test S.U * M * S.V == S.S
+    @testset "Non-square matrices" begin
+        Ms = [[1 2 -2 -1 -6 -4; -3 -3 -8 -5 -1 2; 4 9 7 7 -1 0; -9 2 2 9 -3 -6],
+              [1 0 ; 0 -7 ; 0 2],
+              [1 0 ; 0 0 ; 0 1 ; 0 1]]
+        for M in Ms
+            Fr = hnfr(M)
+            Fc = hnfc(M)
+            S = snf(M)
+            @test M * Fc.U == Fc.H
+            @test Fr.U * M == Fr.H
+            @test S.U * M * S.V == S.S
+        end
     end
     @testset "Square SMatrix" begin
         M = SMatrix{3,3,Int}([-2 1 1; 2 -1 1; 2 1 -1])
