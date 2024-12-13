@@ -76,7 +76,7 @@ end
     NormalForms.gcd_kb(x::Integer, y::Integer) -> NTuple{3,promote_typeof(x,y)}
 
 Calculates the gcd `r` and Bézout coefficients `(p, q)` with the Kannan-Bachem modification. This
-ensures that `q ≤ max(x, y)`.
+ensures that `abs(q) ≤ max(abs(x), abs(y))`.
 
 If `x == y`, this function returns `(x, 1, 0)` - this differs from Julia's `gcdx()`, which returns
 `(x, 0, 1)`. This modification is needed to prevent `snf_ma!()` from looping infinitely when
