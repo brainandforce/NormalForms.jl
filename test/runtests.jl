@@ -19,6 +19,11 @@ Aqua.test_all(NormalForms)
         @test eye(transpose(zeros(Bool, 3,4)), 2) == transpose(collect(LinearAlgebra.I(3)))
         @test eye(adjoint(zeros(Bool, 3,4)), 2) == adjoint(collect(LinearAlgebra.I(3)))
         @test eye(Diagonal([1,2,3]), 2) == Diagonal([1,1,1])
+        A = [1 2 3; 4 5 6]
+        @test NormalForms.swapcols!(A, 1, 2) == [2 1 3; 5 4 6]
+        @test NormalForms.swapcols!(A, 1, 2) == [1 2 3; 4 5 6]
+        @test NormalForms.swaprows!(A, 1, 2) == [4 5 6; 1 2 3]
+        @test NormalForms.swaprows!(A, 1, 2) == [1 2 3; 4 5 6]
     end
     @testset "Factorization assertions" begin
         # Diagonal checks for Smith normal form
