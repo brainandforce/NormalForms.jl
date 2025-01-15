@@ -45,6 +45,8 @@ Aqua.test_all(NormalForms)
         @test iterate(S, Val{:U}()) === (S.U, Val{:V}())
         @test iterate(S, Val{:V}()) === (S.V, nothing)
         @test isnothing(iterate(S, nothing))
+        @test issuccess(S)
+        @test issuccess(Hc)
     end
     @testset "Known square matrix" begin
         M = [-2 1 1; 2 -1 1; 2 1 -1]
@@ -170,6 +172,25 @@ Aqua.test_all(NormalForms)
                 @test NormalForms.detb(M) === NormalForms.detb(N)
             end
         end
+    end
+    @testset "Show methods" begin
+        good_hnfr = RowHermite([1 0; 0 1], [1 0; 0 1], 0)
+        bad_hnfr = RowHermite([1 0; 0 1], [1 0; 0 1], 1)
+        @test repr("text/plain", good_hnfr) == string(
+            summary(good_hnfr),
+            "\nHermite normal form:\n", repr("text/plain", good_hnfr.H),
+            "\nUnimodular factor:\n", repr("text/plain", good_hnfr.U),
+        )
+        @test repr("text/plain", bad_hnfr) == "Failed factorization of type $(typeof(bad_hnfr))"
+        good_snf = Smith([1 0; 0 1], [1 0; 0 1], [1 0; 0 1], 0)
+        bad_snf = Smith([1 0; 0 1], [1 0; 0 1], [1 0; 0 1], 1)
+        @test repr("text/plain", good_snf) == string(
+            summary(good_snf),
+            "\nSmith normal form:\n", repr("text/plain", good_snf.S),
+            "\nLeft unimodular factor:\n", repr("text/plain", good_snf.U),
+            "\nRight unimodular factor:\n", repr("text/plain", good_snf.V)
+        )
+        @test repr("text/plain", bad_snf) == "Failed factorization of type $(typeof(bad_snf))"
     end
 end
 
