@@ -7,6 +7,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.10] - 2025-01-15
+
 ### Changed
   - `swaprows!` and `swapcols!` are implemented in the package and do not rely on the internal Julia
     Base implementations.
