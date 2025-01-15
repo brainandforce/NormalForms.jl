@@ -1,3 +1,4 @@
+#---Generate an identity matrix--------------------------------------------------------------------#
 """
     NormalForms.eye(T::Type, sz)
 
@@ -14,6 +15,7 @@ eye(M::AbstractMatrix, dim) = typeof(M)(collect(UniformScaling(one(eltype(M)))(s
 eye(M::Diagonal, dim = 1) = Diagonal(ones(eltype(M), size(M,dim)))
 # Collect is needed for Julia 1.6 because Adjoint(::Diagonal) is undefined
 
+#---Bareiss integer determinant algorithm (not present in Julia 1.6)-------------------------------#
 """
     NormalForms.detb!(M::AbstractMatrix{T<:Number}) -> T
 
@@ -54,6 +56,7 @@ Algorithm](https://en.wikipedia.org/wiki/Bareiss_algorithm) without modifying `M
 """
 detb(M::AbstractMatrix) = detb!(copy(M))
 
+#---Unimodularity checks---------------------------------------------------------------------------#
 """
     isunimodular(M::AbstractMatrix)
 
@@ -72,6 +75,7 @@ end
 
 # TODO: a unimodular inverse?
 
+#---Kannen-Bachem modification to GCD algorithm----------------------------------------------------#
 """
     NormalForms.gcd_kb(x::Integer, y::Integer) -> NTuple{3,promote_typeof(x,y)}
 
