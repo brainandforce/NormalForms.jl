@@ -15,6 +15,56 @@ eye(M::AbstractMatrix, dim) = typeof(M)(collect(UniformScaling(one(eltype(M)))(s
 eye(M::Diagonal, dim = 1) = Diagonal(ones(eltype(M), size(M,dim)))
 # Collect is needed for Julia 1.6 because Adjoint(::Diagonal) is undefined
 
+#---Row and column swapping------------------------------------------------------------------------#
+
+#=
+    In Julia 1.6, Base.swaprows! is not implemented, so we have to implement it ourselves.
+
+    Even when support for Julia 1.6 is dropped, we need to rely on our own implementations of 
+    swaprows! and swapcols!, because these aren't public symbols.
+=#
+"""
+    NormalForms.swapcols!(A::AbstractMatrix, x, y)
+
+Swaps columns of `x` and `y` of the matrix `A`. 
+
+Bounds checks are implmented and may be disabled with `@inbounds`. However, if `x` and `y` reference
+the same index, no error is thrown, even if they are not valid indices of the array.
+
+Unlike the implementation in Base, for convenience, `A` is returned.
+"""
+function swapcols!(A::AbstractMatrix, x, y)
+    if x != y
+        @boundscheck x in axes(A, 2) || throw(BoundsError(A, (:,x)))
+        @boundscheck y in axes(A, 2) || throw(BoundsError(A, (:,y)))
+        for z in axes(A, 1)
+            @inbounds A[z,x], A[z,y] = A[z,y], A[z,x]
+        end
+    end
+    return A
+end
+
+"""
+    NormalForms.swaprows!(A::AbstractMatrix, x, y)
+
+Swaps rows of `x` and `y` of the matrix `A`.
+
+Bounds checks are implmented and may be disabled with `@inbounds`. However, if `x` and `y` reference
+the same index, no error is thrown, even if they are not valid indices of the array.
+
+Unlike the implementation in Base, for convenience, `A` is returned.
+"""
+function swaprows!(A::AbstractMatrix, x::Integer, y::Integer)
+    if x != y
+        @boundscheck x in axes(A, 1) || throw(BoundsError(A, (x,:)))
+        @boundscheck y in axes(A, 1) || throw(BoundsError(A, (y,:)))
+        for z in axes(A, 2)
+            @inbounds A[x,z], A[y,z] = A[y,z], A[x,z]
+        end
+    end
+    return A
+end
+
 #---Bareiss integer determinant algorithm (not present in Julia 1.6)-------------------------------#
 """
     NormalForms.detb!(M::AbstractMatrix{T<:Number}) -> T

@@ -2,7 +2,7 @@ module NormalForms
 
 using LinearAlgebra
 using Requires
-import Base: promote_typeof, swaprows!, swapcols!
+import Base: promote_typeof
 
 include("algorithms.jl")
 export isunimodular
