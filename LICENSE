@@ -7,9 +7,9 @@ authored by Yingbo Ma <mayingbo5@gmail.com> and Chris Elrod. This code
 is also available under the MIT license. The repository can be found at:
 https://github.com/YingboMa/HermiteNormalForm.jl
 
-The Bareiss determinant algorithm was pulled from the Julia 1.8 source code
-for compatibility with Julia versions prior to 1.7. Julia 1.8 is also available
-under the MIT license.
+Some algorithms, such as the Bareiss determinant algorithm and the
+reimplementation of row and column swapping for matrices, were based on Julia 
+source code. All Julia versions are also available under an MIT license.
 
 ==
 
