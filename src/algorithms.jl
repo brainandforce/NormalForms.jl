@@ -127,7 +127,7 @@ end
 
 #---Kannen-Bachem modification to GCD algorithm----------------------------------------------------#
 """
-    NormalForms.gcd_kb(x::Integer, y::Integer) -> NTuple{3,promote_typeof(x,y)}
+    NormalForms.gcd_kb(x::Integer, y::Integer) -> NTuple{3,promote_type(typeof(x),typeof(y))}
 
 Calculates the gcd `r` and Bézout coefficients `(p, q)` with the Kannan-Bachem modification. This
 ensures that `abs(q) ≤ max(abs(x), abs(y))`.

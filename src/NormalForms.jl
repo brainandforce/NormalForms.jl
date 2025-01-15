@@ -2,7 +2,6 @@ module NormalForms
 
 using LinearAlgebra
 using Requires
-import Base: promote_typeof
 
 include("algorithms.jl")
 export isunimodular

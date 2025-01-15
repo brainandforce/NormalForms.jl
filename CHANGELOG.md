@@ -10,6 +10,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
   - `swaprows!` and `swapcols!` are implemented in the package and do not rely on the internal Julia
     Base implementations.
+  - Removed all references to `Base.promote_typeof` as it is also internal.
 
 ### Fixed
   - Failure to compute Smith normal form for matrices with a zero row (#21 - thanks, 

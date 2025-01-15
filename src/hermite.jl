@@ -38,7 +38,7 @@ struct RowHermite{T,M} <: AbstractHermite{T,M}
             "H and U have incompatible dimensions: ",
             join(size(H), '×'), " for H and ", join(size(U), '×'), "for U"
         )
-        M = promote_typeof(H,U)
+        M = promote_type(typeof(H), typeof(U))
         return new{eltype(M),M}(H, U, info)
     end
 end
@@ -65,7 +65,7 @@ struct ColumnHermite{T,M} <: AbstractHermite{T,M}
             "H and U have incompatible dimensions: ",
             join(size(H), '×'), " for H and ", join(size(U), '×'), "for U"
         )
-        M = promote_typeof(H, U)
+        M = promote_type(typeof(H), typeof(U))
         return new{eltype(M),M}(H, U, info)
     end
 end

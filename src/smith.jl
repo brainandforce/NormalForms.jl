@@ -27,7 +27,7 @@ struct Smith{T<:Integer,M<:AbstractMatrix{T}} <: Factorization{T}
             "S and V have incompatible dimensions: ",
             join(size(S), '×'), " for S and ", join(size(V), '×'), " for V"
         )
-        M = promote_typeof(S, U, V)
+        M = promote_type(typeof(S), typeof(U), typeof(V))
         return new{eltype(M),M}(S, U, V, info)
     end
 end
