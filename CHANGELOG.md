@@ -7,6 +7,16 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+  - `swaprows!` and `swapcols!` are implemented in the package and do not rely on the internal Julia
+    Base implementations.
+
+### Fixed
+  - Failure to compute Smith normal form for matrices with a zero row (#21 - thanks, 
+    justus-springer!)
+  - Incorrect result from GCD algorithm when negative integers are used (#22 - thanks, 
+    justus-springer!)
+
 ## [0.1.9] - 2024-06-13
 
 ### Changed
