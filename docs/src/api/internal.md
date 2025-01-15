@@ -22,6 +22,8 @@ NormalForms.eye
 NormalForms.gcd_kb
 NormalForms.detb!
 NormalForms.detb
+NormalForms.swapcols!
+NormalForms.swaprows!
 NormalForms.find_pivot
 NormalForms.is_row_zero_after
 NormalForms.is_col_zero_after
