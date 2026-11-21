@@ -196,6 +196,18 @@ Aqua.test_all(NormalForms)
             @test diag(S.S) == K
             @test S.U * M * S.V == S.S
         end
+        # Each invariant factor must divide the next, and none may be negative
+        for (M,K) in (
+            [2 0 0; 0 2 0; 0 0 1] => [1, 2, 2],
+            diagm([-12, 6, -6, -7]) => [1, 6, 6, 84],
+            [4 -4 2; 4 -2 -2; -3 -1 2] => [1, 2, 18],
+            [-5 0 0 0] => [5],
+            [-5 0; 0 0] => [5, 0],
+        )
+            F = snf(M)
+            @test diag(F.S) == K
+            @test F.U * M * F.V == F.S
+        end
     end
     @testset "Show methods" begin
         good_hnfr = RowHermite([1 0; 0 1], [1 0; 0 1], 0)
