@@ -109,6 +109,15 @@ function snf_ma!(A::AbstractMatrix{<:Integer})
         zero_row_and_col!(A, U, V, k)
         # Perform some operations to make A[k,k] divisible by A[k-1,k-1]
         enforce_divisibility!(A, U, V, k)
+        # That can change A[k-1,k-1], so carry the change back until each entry divides the next
+        for j in k-1:-1:first(axes(A,1))+1
+            iszero(A[j,j] % A[j-1,j-1]) && break
+            enforce_divisibility!(A, U, V, j)
+        end
+    end
+    # enforce_divisibility! makes the diagonal nonnegative, except a first entry left on its own
+    for k in minimum(axes(A))
+        A[k,k] < 0 && (A[k,k] = -A[k,k]; @views U[k,:] .*= -1)
     end
     return (A, U, V, 0)
 end
