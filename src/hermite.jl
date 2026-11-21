@@ -170,7 +170,7 @@ Calculates the column Hermite normal form of the integer matrix `M` in-place, re
 `ColumnHermite` describing the elements of the factorization. Unlike `hnfc!()`, this function
 creates a copy of the input matrix rather than modifying it in-place.
 """
-hnfc(M::AbstractMatrix) = hnfc!(deepcopy(M))
+hnfc(M::AbstractMatrix) = hnfc!(copy_input(M))
 
 """
     hnfr!(M::AbstractMatrix{<:Integer}, R::RoundingMode = NegativeOffDiagonal)
@@ -194,4 +194,4 @@ Calculates the row Hermite normal form of the integer matrix `M` in-place, retur
 describing the elements of the factorization. Unlike `hnfr!()`, this function creates a copy of the
 input matrix rather than modifying it in-place.
 """
-hnfr(M::AbstractMatrix) = hnfr!(deepcopy(M))
+hnfr(M::AbstractMatrix) = hnfr!(copy_input(M))
