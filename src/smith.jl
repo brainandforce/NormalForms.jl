@@ -121,4 +121,4 @@ snf!(M::AbstractMatrix) = Smith(snf_ma!(M)...)
 
 Calculates the Smith normal form of an integer matrix, returning a copy of the original matrix.
 """
-snf(M::AbstractMatrix) = snf!(deepcopy(M))
+snf(M::AbstractMatrix) = snf!(copy_input(M))

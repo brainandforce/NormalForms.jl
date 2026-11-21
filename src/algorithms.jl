@@ -12,8 +12,22 @@ eye(T::Type, sz) = Matrix{T}(LinearAlgebra.I(sz))
 Generates an identity matrix of the same dimension as dimension `dim` of `M`.
 """
 eye(M::AbstractMatrix, dim) = typeof(M)(collect(UniformScaling(one(eltype(M)))(size(M, dim))))
+eye(M::Matrix, dim) = Matrix{eltype(M)}(LinearAlgebra.I, size(M, dim), size(M, dim))
 eye(M::Diagonal, dim = 1) = Diagonal(ones(eltype(M), size(M,dim)))
 # Collect is needed for Julia 1.6 because Adjoint(::Diagonal) is undefined
+
+#---Copying the input matrix-----------------------------------------------------------------------#
+"""
+    NormalForms.copy_input(M::AbstractMatrix)
+
+Returns a copy of `M` of the same type, for the non-mutating functions `hnfc`, `hnfr`, and `snf`.
+For a `Matrix` of integers, and for a `Transpose` or `Adjoint` of one, this copies only the underlying
+array, which is much faster than `deepcopy`. Other types fall back to `deepcopy`.
+"""
+copy_input(M::AbstractMatrix) = deepcopy(M)
+copy_input(M::Matrix{<:Integer}) = copy(M)
+copy_input(M::Transpose{<:Integer,<:Matrix}) = transpose(copy(parent(M)))
+copy_input(M::Adjoint{<:Integer,<:Matrix}) = adjoint(copy(parent(M)))
 
 #---Row and column swapping------------------------------------------------------------------------#
 
@@ -178,8 +192,8 @@ end
 
 Checks if all entries of row or column `k` superseding `A[k,k]` are zero.
 """
-is_row_zero_after(A::AbstractMatrix, k::Integer) = all(iszero(A[k,k+1:end]))
-is_col_zero_after(A::AbstractMatrix, k::Integer) = all(iszero(A[k+1:end,k]))
+is_row_zero_after(A::AbstractMatrix, k::Integer) = all(iszero, @view A[k,k+1:end])
+is_col_zero_after(A::AbstractMatrix, k::Integer) = all(iszero, @view A[k+1:end,k])
 @doc (@doc is_row_zero_after) is_col_zero_after
 
 """
@@ -293,14 +307,24 @@ elements will be negative. If set to `RoundDown` or `PositiveOffDiagonal`, they 
 )
     # Make the diagonal element positive
     if A[ki, k] < zero(eltype(A))
-        @. A[:,k] = -A[:,k]
-        @. U[:,k] = -U[:,k]
+        for i in axes(A,1)
+            A[i,k] = -A[i,k]
+        end
+        for i in axes(U,1)
+            U[i,k] = -U[i,k]
+        end
     end
     # Minimize the off-diagonal elements
+    # (Loops rather than slice broadcasts: A[:,k] on the right-hand side of a broadcast allocates
+    # a copy of the column.)
     for j = 1:k-1
         mul = div(A[ki,j], A[ki,k], R)
-        @. A[:,j] -= mul * A[:,k]
-        @. U[:,j] -= mul * U[:,k]
+        for i in axes(A,1)
+            A[i,j] -= mul * A[i,k]
+        end
+        for i in axes(U,1)
+            U[i,j] -= mul * U[i,k]
+        end
     end
 end
 
@@ -330,14 +354,22 @@ function zero_row_and_col!(
         zero_row!(A, V, k, ki)
         for n in axes(A, 1)[k+1:end]
             mul = div(A[n,k], A[k,k], RoundToZero)
-            A[n,:] .-= mul .* A[k,:]
-            U[n,:] .-= mul .* U[k,:]
+            for i in axes(A,2)
+                A[n,i] -= mul * A[k,i]
+            end
+            for i in axes(U,2)
+                U[n,i] -= mul * U[k,i]
+            end
         end
         zero_col!(A, U, k, ki)
         for n in axes(A, 2)[k+1:end]
             mul = div(A[k,n], A[k,k], RoundToZero)
-            A[:,n] .-= mul .* A[:,k]
-            V[:,n] .-= mul .* V[:,k]
+            for i in axes(A,1)
+                A[i,n] -= mul * A[i,k]
+            end
+            for i in axes(V,1)
+                V[i,n] -= mul * V[i,k]
+            end
         end
         # TODO: what's a resonable bound on the number of iterations before we should error?
         iterations > length(A) && error("Unreasonable amount of iterations (file an issue)")
