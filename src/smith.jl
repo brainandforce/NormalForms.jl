@@ -86,9 +86,18 @@ function snf_ma!(A::AbstractMatrix{<:Integer})
         if iszero(pivot)
             # Set ki to the first nonzero column member
             ki = findfirst(!iszero, @view A[k+1:end, k])
-            # If all are zero, break from the row loop (matrix is truly rank deficient)
             # Otherwise, add the found value to k to compensate for the view's indices
-            isnothing(ki) ? continue : (ki += k) # what does it mean when ki > k...
+            if isnothing(ki)
+                # Row and column k are zero: move any nonzero entry of A[k:end, k:end] to A[k,k]
+                # If there is none, the remaining submatrix is zero and the factorization is done
+                ij = findfirst(!iszero, @view A[k:end, k:end])
+                isnothing(ij) && break
+                ki = ij[1] + k - 1
+                swapcols!(A, k, ij[2] + k - 1)
+                swapcols!(V, k, ij[2] + k - 1)
+            else
+                ki += k
+            end
         else
             ki = k
             swapcols!(A, pivot, k)

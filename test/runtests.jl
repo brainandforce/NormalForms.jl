@@ -172,6 +172,30 @@ Aqua.test_all(NormalForms)
                 @test NormalForms.detb(M) === NormalForms.detb(N)
             end
         end
+        # Rank-deficient matrices whose row and column k are zero at step k
+        rank_deficient_matrices = (
+            [0 0; 0 9],
+            [0 0 0; 0 2 0; 0 0 3],
+            diagm([0, 0, 5, 0, 3]),
+            zeros(Int, 3, 3),
+            [0 0 0; 0 4 6; 0 6 9],
+            [0 0 0 0; 0 2 4 0; 0 0 0 6],
+            [0 0 0; 0 0 4; 0 0 0; 0 6 0],
+        )
+        known_rank_deficient_snfs = (
+            [9, 0],
+            [1, 6, 0],
+            [1, 15, 0, 0, 0],
+            [0, 0, 0],
+            [1, 0, 0],
+            [2, 6, 0],
+            [2, 12, 0],
+        )
+        for (M,K) in zip(rank_deficient_matrices, known_rank_deficient_snfs)
+            S = snf(M)
+            @test diag(S.S) == K
+            @test S.U * M * S.V == S.S
+        end
     end
     @testset "Show methods" begin
         good_hnfr = RowHermite([1 0; 0 1], [1 0; 0 1], 0)
