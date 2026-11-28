@@ -7,6 +7,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.11] - 2026-11-28
+
+### Fixed
+  - Fixed Smith normal form `DivideError` when row and column `k` are zero at step `k`, with added test cases (#28 - thanks, glwhart!)
+
 ## [0.1.10] - 2025-01-15
 
 ### Changed
